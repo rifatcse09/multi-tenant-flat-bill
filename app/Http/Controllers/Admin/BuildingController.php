@@ -3,74 +3,99 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreBuildingRequest;
+use App\Http\Requests\Admin\UpdateBuildingRequest;
 use App\Models\Building;
-use App\Models\User;
+use App\Services\Admin\BuildingService;
 use Illuminate\Http\Request;
 
-class BuildingController extends Controller {
+class BuildingController extends Controller
+{
+    protected BuildingService $buildingService;
 
-    public function index(Request $request)
+    public function __construct(BuildingService $buildingService)
     {
-        $q=trim($request->get('q',''));
-
-        $buildings = Building::withoutGlobalScopes()
-        ->with('owner')
-        ->when($q, fn($qry) => $qry->where(function($s) use ($q){
-        $s->where('name','like',"%$q%")
-        ->orWhere('address','like',"%$q%");
-        }))
-        ->latest()
-        ->paginate(12)
-        ->withQueryString();
-
-        return view('admin.buildings.index', compact('buildings','q'));
+        $this->buildingService = $buildingService;
     }
 
+    /**
+     * Display a listing of buildings with pagination and search.
+     */
+    public function index(Request $request)
+    {
+        $search = trim($request->get('q', ''));
+        $buildings = $this->buildingService->paginateBuildings($search);
+        $stats = $this->buildingService->getAdminDashboardStats();
+
+        return view('admin.buildings.index', compact('buildings', 'search', 'stats'));
+    }
+
+    /**
+     * Show the form for creating a new building.
+     */
     public function create()
     {
-        $owners = User::where('role','owner')->orderBy('name')->get(['id','name','email']);
+        $owners = $this->buildingService->getAllOwners();
         return view('admin.buildings.create', compact('owners'));
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created building.
+     */
+    public function store(StoreBuildingRequest $request)
     {
-        $data = $request->validate([
-        'owner_id' => ['required','exists:users,id'],
-        'name' => ['required','string','max:120'],
-        'address' => ['nullable','string','max:255'],
-        ]);
+        $building = $this->buildingService->createBuilding($request->validated());
 
-        Building::withoutGlobalScopes()->create($data);
-
-        return redirect()->route('admin.buildings.index')->with('ok','Building created');
+        return redirect()
+            ->route('admin.buildings.index')
+            ->with('ok', 'Building created successfully');
     }
 
+    /**
+     * Display the specified building.
+     */
+    public function show(Building $building)
+    {
+        $building = $this->buildingService->getBuildingWithDetails($building);
+        $stats = $this->buildingService->getBuildingStats($building);
+
+        return view('admin.buildings.show', compact('building', 'stats'));
+    }
+
+    /**
+     * Show the form for editing the building.
+     */
     public function edit(Building $building)
     {
-        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
-        $owners = User::where('role','owner')->orderBy('name')->get(['id','name','email']);
-        return view('admin.buildings.edit', compact('building','owners'));
+        $owners = $this->buildingService->getAllOwners();
+        return view('admin.buildings.edit', compact('building', 'owners'));
     }
 
-    public function update(Request $request, Building $building)
+    /**
+     * Update the specified building.
+     */
+    public function update(UpdateBuildingRequest $request, Building $building)
     {
-        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
+        $this->buildingService->updateBuilding($building, $request->validated());
 
-        $data = $request->validate([
-        'owner_id' => ['required','exists:users,id'],
-        'name' => ['required','string','max:120'],
-        'address' => ['nullable','string','max:255'],
-        ]);
-
-        $building->update($data);
-
-        return redirect()->route('admin.buildings.index')->with('ok','Building updated');
+        return redirect()
+            ->route('admin.buildings.index')
+            ->with('ok', 'Building updated successfully');
     }
 
+    /**
+     * Remove the specified building.
+     */
     public function destroy(Building $building)
     {
-        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
-        $building->delete();
-        return redirect()->route('admin.buildings.index')->with('ok','Building deleted');
+        try {
+            $this->buildingService->deleteBuilding($building);
+            return redirect()
+                ->route('admin.buildings.index')
+                ->with('ok', 'Building deleted successfully');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', $e->getMessage());
+        }
     }
 }

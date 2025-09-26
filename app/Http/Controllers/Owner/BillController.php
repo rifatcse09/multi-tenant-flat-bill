@@ -6,7 +6,7 @@ use App\Models\Bill;
 use App\Models\Flat;
 use App\Models\BillCategory;
 use Illuminate\Http\Request;
-use App\Services\BillService;
+use App\Services\Owner\BillService;
 use App\Http\Controllers\Controller;
 
 class BillController extends Controller

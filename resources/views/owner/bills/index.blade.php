@@ -125,6 +125,9 @@
             </span>
           </td>
           <td class="p-3">
+
+            <a href="{{ route('owner.payments.create', ['bill_id' => $b->id]) }}"
+                class="text-indigo-700 mr-3">Add Payment</a>
             {{-- placeholders; wire your routes if you have show/pay --}}
             {{-- <a href="{{ route('owner.bills.edit', $b->id ?? 0) }}" class="text-blue-700 mr-3">Edit</a>
             <a href="{{ route('owner.payments.create', ['bill_id' => $b->id]) }}" class="text-indigo-700 mr-3">Add Payment</a>

@@ -15,7 +15,7 @@ return new class extends Migration {
             $t->date('month');
             $t->decimal('amount',12,2);
             $t->decimal('due_carry_forward',12,2)->default(0);
-            $t->enum('status',['paid','unpaid'])->default('unpaid');
+            $t->enum('status',['paid','unpaid','partial'])->default('unpaid');
             $t->string('notes',255)->nullable();
             $t->timestamps();
             $t->index(['owner_id','flat_id','bill_category_id','month']);

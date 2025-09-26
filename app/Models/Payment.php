@@ -7,9 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Payment extends Model
 {
     protected $fillable = ['bill_id','amount','paid_at','method','ref'];
-    protected $casts = ['paid_at' => 'datetime'];
+    protected $casts = [
+        'paid_at' => 'datetime'
+    ];
 
-    public function bill() {
+    public function bill()
+    {
         return $this->belongsTo(Bill::class);
     }
+
 }

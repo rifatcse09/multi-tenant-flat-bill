@@ -1,38 +1,73 @@
 @extends('layouts.app')
-@section('title','New House Owner')
+@section('title', 'Create Owner')
 
 @section('content')
-<h1 class="text-2xl font-semibold mb-4 mt-2">Create House Owner</h1>
+    <h1 class="text-2xl font-semibold mb-4">Create New Owner</h1>
 
-<form method="POST" action="{{ route('admin.owners.store') }}" class="bg-white p-6 rounded-lg shadow-sm border max-w-xl">
-  @csrf
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Name</span>
-    <input name="name" value="{{ old('name') }}" class="mt-1 w-full border p-2 rounded">
-    @error('name')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+    @if ($errors->any())
+        <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <ul class="list-disc list-inside">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Email</span>
-    <input name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full border p-2 rounded">
-    @error('email')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+    <form method="POST" action="{{ route('admin.owners.store') }}" class="bg-white p-6 rounded-lg shadow-sm border max-w-2xl">
+        @csrf
 
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Slug (subdomain) – optional</span>
-    <input name="slug" value="{{ old('slug') }}" class="mt-1 w-full border p-2 rounded" placeholder="owner1">
-    @error('slug')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <label class="block">
+                <span class="text-sm text-gray-700">Name <span class="text-red-500">*</span></span>
+                <input name="name" value="{{ old('name') }}"
+                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 @error('name') border-red-500 @enderror"
+                    required>
+                @error('name')
+                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                @enderror
+            </label>
 
-  <label class="block mb-5">
-    <span class="text-sm text-gray-700">Password (optional)</span>
-    <input name="password" type="password" class="mt-1 w-full border p-2 rounded" placeholder="default 'password' if empty">
-    @error('password')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+            <label class="block">
+                <span class="text-sm text-gray-700">Email <span class="text-red-500">*</span></span>
+                <input name="email" type="email" value="{{ old('email') }}"
+                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 @error('email') border-red-500 @enderror"
+                    required>
+                @error('email')
+                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                @enderror
+            </label>
+        </div>
 
-  <div class="flex gap-2 mt-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
-    <a href="{{ route('admin.owners.index') }}" class="px-4 py-2 border rounded">Cancel</a>
-  </div>
-</form>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <label class="block">
+                <span class="text-sm text-gray-700">Slug</span>
+                <input name="slug" value="{{ old('slug') }}"
+                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 @error('slug') border-red-500 @enderror">
+                <p class="text-xs text-gray-500 mt-1">Optional. Leave empty to auto-generate.</p>
+                @error('slug')
+                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                @enderror
+            </label>
+
+            <label class="block">
+                <span class="text-sm text-gray-700">Password</span>
+                <input name="password" type="password" value="{{ old('password') }}"
+                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-blue-500 @error('password') border-red-500 @enderror">
+                <p class="text-xs text-gray-500 mt-1">Leave empty for default password.</p>
+                @error('password')
+                    <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                @enderror
+            </label>
+        </div>
+
+        <div class="mt-6 flex gap-2">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Create Owner
+            </button>
+            <a href="{{ route('admin.owners.index') }}" class="px-4 py-2 border rounded hover:bg-gray-50">
+                Cancel
+            </a>
+        </div>
+    </form>
 @endsection

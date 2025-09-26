@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Owner;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class UpdateTenantOccupancyRequest extends FormRequest
 {
@@ -12,7 +12,7 @@ class UpdateTenantOccupancyRequest extends FormRequest
      */
     public function authorize(): bool
     {
-         return auth()->check() && auth()->user()->role === 'owner';
+        return auth()->check() && auth()->user()->role === 'owner';
     }
 
     /**
@@ -20,10 +20,19 @@ class UpdateTenantOccupancyRequest extends FormRequest
      */
     public function rules(): array
     {
+        $building = $this->route('building');
+
         return [
-            'flat_id'    => ['required', 'exists:flats,id'],
+            'flat_id' => [
+                'required',
+                'exists:flats,id',
+                Rule::exists('flats', 'id')->where(function ($query) use ($building) {
+                    $query->where('building_id', $building->id)
+                          ->where('owner_id', auth()->id());
+                })
+            ],
             'start_date' => ['required', 'date'],
-            'end_date'   => ['nullable', 'date', 'after_or_equal:start_date'],
+            'end_date' => ['nullable', 'date', 'after:start_date'],
         ];
     }
 
@@ -34,11 +43,11 @@ class UpdateTenantOccupancyRequest extends FormRequest
     {
         return [
             'flat_id.required' => 'Please select a flat.',
-            'flat_id.exists' => 'The selected flat does not exist.',
+            'flat_id.exists' => 'The selected flat does not exist or does not belong to this building.',
             'start_date.required' => 'Start date is required.',
-            'start_date.date' => 'Start date must be a valid date.',
-            'end_date.date' => 'End date must be a valid date.',
-            'end_date.after_or_equal' => 'End date must be after or equal to start date.',
+            'start_date.date' => 'Please enter a valid start date.',
+            'end_date.date' => 'Please enter a valid end date.',
+            'end_date.after' => 'End date must be after the start date.',
         ];
     }
 
@@ -48,81 +57,44 @@ class UpdateTenantOccupancyRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            $this->validateOverlapping($validator);
+            $this->validateNoOverlappingOccupancy($validator);
         });
     }
 
     /**
-     * Validate overlapping occupancy for updates.
+     * Validate that there's no overlapping occupancy for the same flat.
      */
-    protected function validateOverlapping($validator): void
+    protected function validateNoOverlappingOccupancy($validator): void
     {
-        $building = $this->route('building');
-        $tenant = $this->route('tenant');
-        $pivotId = $this->route('pivotId');
         $flatId = $this->input('flat_id');
         $startDate = $this->input('start_date');
         $endDate = $this->input('end_date');
+        $tenant = $this->route('tenant');
+        $pivotId = $this->route('pivotId');
 
-        // Ensure selected flat belongs to this building
-        $flat = $building->flats()->whereKey($flatId)->first();
-        if (!$flat) {
-            $validator->errors()->add('flat_id', 'The selected flat does not belong to this building.');
+        if (!$flatId || !$startDate || !$tenant || !$pivotId) {
             return;
         }
 
-        // Get current assignment
-        $currentAssignment = DB::table('flat_tenant')->where('id', $pivotId)->first();
-
-        // If flat_id is changed, check for open assignment on new flat
-        if ($currentAssignment && $currentAssignment->flat_id != $flatId) {
-            $openAssignment = DB::table('flat_tenant')
-                ->where('flat_id', $flat->id)
-                ->whereNull('end_date')
-                ->whereNull('start_date')
-                ->exists();
-
-            if ($openAssignment) {
-                $validator->errors()->add('flat_id', 'Cannot assign this flat before the previous assignment is ended.');
-                return;
-            }
-        }
-
-        // If updating same assignment, allow change if start_date is after previous end_date or end_date is set
-        if ($currentAssignment && $currentAssignment->flat_id == $flatId) {
-            if (is_null($currentAssignment->end_date) && !is_null($endDate)) {
-                // Allow closing open assignment
-                return;
-            }
-            if (!is_null($currentAssignment->end_date) && $startDate > $currentAssignment->end_date) {
-                // Allow new slot after previous end_date
-                return;
-            }
-        }
-
-        // Check for overlapping occupancy, excluding current pivot
-        $overlap = DB::table('flat_tenant')
-            ->where('flat_id', $flat->id)
-            ->where('tenant_id', $tenant->id)
+        // Check for overlapping occupancies in the same flat (excluding current record)
+        $overlapping = \DB::table('flat_tenant')
+            ->where('flat_id', $flatId)
             ->where('id', '!=', $pivotId)
-            ->where(function($q) use ($startDate, $endDate) {
-                if ($endDate) {
-                    $q->where(function($x) use ($startDate) {
-                        $x->whereNull('end_date')->orWhere('end_date', '>=', $startDate);
-                    })->where(function($x) use ($endDate) {
-                        $x->whereNull('start_date')->orWhere('start_date', '<=', $endDate);
-                    });
-                } else {
-                    $q->where(function($x) use ($startDate) {
-                        $x->whereNull('end_date')->orWhere('end_date', '>=', $startDate);
-                    })->where(function($x) use ($startDate) {
-                        $x->whereNull('start_date')->orWhere('start_date', '<=', $startDate);
-                    });
-                }
-            })->exists();
+            ->where('tenant_id', '!=', $tenant->id)
+            ->where(function ($query) use ($startDate, $endDate) {
+                $query->where(function ($q) use ($startDate, $endDate) {
+                    // Case 1: Existing occupancy starts before our end date (or no end date)
+                    $q->where('start_date', '<=', $endDate ?: '9999-12-31');
+                })->where(function ($q) use ($startDate) {
+                    // Case 2: Existing occupancy ends after our start date (or no end date)
+                    $q->whereNull('end_date')
+                      ->orWhere('end_date', '>=', $startDate);
+                });
+            })
+            ->exists();
 
-        if ($overlap) {
-            $validator->errors()->add('start_date', 'Overlaps with an existing assignment for this tenant on this flat.');
+        if ($overlapping) {
+            $validator->errors()->add('start_date', 'This flat is already occupied during the selected period.');
         }
     }
 }

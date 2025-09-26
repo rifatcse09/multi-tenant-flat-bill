@@ -22,7 +22,7 @@ class Tenant extends Model
                     ->withTimestamps()
                     ->withPivot(['start_date','end_date']);
     }
-    
+
     public function bills()
     {
         return $this->hasMany(Bill::class);

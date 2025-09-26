@@ -20,7 +20,6 @@ class DatabaseSeeder extends Seeder
             BuildingSeeder::class,
             FlatSeeder::class,
             CategorySeeder::class,
-            BillSeeder::class,
         ]);
     }
 }

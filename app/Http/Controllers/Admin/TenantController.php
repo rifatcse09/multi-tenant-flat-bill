@@ -3,68 +3,112 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreTenantRequest;
+use App\Http\Requests\Admin\UpdateTenantRequest;
 use App\Models\Tenant;
+use App\Services\Admin\TenantService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class TenantController extends Controller
 {
-    public function index(Request $request)
-    {
-        $q = trim($request->get('q',''));
-        $tenants = Tenant::query()
-            ->when($q, fn($qry) => $qry->where(function($s) use ($q){
-                $s->where('name','like',"%$q%")
-                  ->orWhere('email','like',"%$q%")
-                  ->orWhere('phone','like',"%$q%");
-            }))
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
+    protected TenantService $tenantService;
 
-        return view('admin.tenants.index', compact('tenants','q'));
+    public function __construct(TenantService $tenantService)
+    {
+        $this->tenantService = $tenantService;
     }
 
+    /**
+     * Display a listing of tenants with pagination and search.
+     */
+    public function index(Request $request)
+    {
+        $search = trim($request->get('q', ''));
+        $tenants = $this->tenantService->paginateTenants($search);
+        $stats = $this->tenantService->getAdminTenantStats();
+
+        return view('admin.tenants.index', compact('tenants', 'search', 'stats'));
+    }
+
+    /**
+     * Show the form for creating a new tenant.
+     */
     public function create()
     {
         return view('admin.tenants.create');
     }
 
-    public function store(Request $request)
+    /**
+     * Store a newly created tenant.
+     */
+    public function store(StoreTenantRequest $request)
     {
-        $data = $request->validate([
-            'name'  => ['required','string','max:100'],
-            'email' => ['nullable','email','max:150','unique:tenants,email'],
-            'phone' => ['nullable','string','max:30'],
-        ]);
+        $tenant = $this->tenantService->createTenant($request->validated());
 
-        Tenant::create($data);
-
-        return redirect()->route('admin.tenants.index')
-            ->with('ok','Tenant created');
+        return redirect()
+            ->route('admin.tenants.index')
+            ->with('ok', "Tenant '{$tenant->name}' created successfully");
     }
 
+    /**
+     * Display the specified tenant.
+     */
+    public function show(Tenant $tenant)
+    {
+        $stats = $this->tenantService->getTenantStats($tenant);
+        $buildings = $tenant->buildings()->withCount(['flats'])->get();
+
+        return view('admin.tenants.show', compact('tenant', 'stats', 'buildings'));
+    }
+
+    /**
+     * Show the form for editing the tenant.
+     */
     public function edit(Tenant $tenant)
     {
         return view('admin.tenants.edit', compact('tenant'));
     }
 
-    public function update(Request $request, Tenant $tenant)
+    /**
+     * Update the specified tenant.
+     */
+    public function update(UpdateTenantRequest $request, Tenant $tenant)
     {
-        $data = $request->validate([
-            'name'  => ['required','string','max:100'],
-            'email' => ['nullable','email','max:150', Rule::unique('tenants','email')->ignore($tenant->id)],
-            'phone' => ['nullable','string','max:30'],
-        ]);
+        $this->tenantService->updateTenant($tenant, $request->validated());
 
-        $tenant->update($data);
-
-        return redirect()->route('admin.tenants.index')->with('ok','Tenant updated');
+        return redirect()
+            ->route('admin.tenants.index')
+            ->with('ok', 'Tenant updated successfully');
     }
 
+    /**
+     * Remove the specified tenant.
+     */
     public function destroy(Tenant $tenant)
     {
-        $tenant->delete();
-        return redirect()->route('admin.tenants.index')->with('ok','Tenant deleted');
+        try {
+            $this->tenantService->deleteTenant($tenant);
+            return redirect()
+                ->route('admin.tenants.index')
+                ->with('ok', 'Tenant deleted successfully');
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Search tenants.
+     */
+    public function search(Request $request)
+    {
+        $query = trim($request->get('q', ''));
+
+        if ($query) {
+            $tenants = $this->tenantService->searchTenants($query);
+            return view('admin.tenants.search', compact('tenants', 'query'));
+        }
+
+        return redirect()->route('admin.tenants.index');
     }
 }

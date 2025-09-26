@@ -3,62 +3,90 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\AssignTenantRequest;
 use App\Models\Building;
 use App\Models\Tenant;
+use App\Services\Admin\BuildingTenantService;
 use Illuminate\Http\Request;
 
 class BuildingTenantController extends Controller
 {
-    public function index(Building $building)
-    {
-        // Admin sees all; building could have OwnerScope—pull unscoped if needed:
-        $building = Building::withoutGlobalScopes()->with(['owner','tenants'])->findOrFail($building->id);
+    protected BuildingTenantService $buildingTenantService;
 
-        return view('admin.buildings.tenants.index', [
-            'building' => $building,
-            'tenants'  => $building->tenants()->orderBy('name')->paginate(20),
-        ]);
+    public function __construct(BuildingTenantService $buildingTenantService)
+    {
+        $this->buildingTenantService = $buildingTenantService;
     }
 
+    /**
+     * Display tenants assigned to a building with pagination.
+     */
+    public function index(Building $building, Request $request)
+    {
+        $search = trim($request->get('q', ''));
+        $tenants = $this->buildingTenantService->paginateBuildingTenants($building, $search);
+        $stats = $this->buildingTenantService->getBuildingTenantStats($building);
+
+        return view('admin.buildings.tenants.index', compact('building', 'tenants', 'stats'));
+    }
+
+    /**
+     * Show form to assign tenant to building.
+     */
     public function create(Building $building)
     {
-        $building = Building::withoutGlobalScopes()->with('owner')->findOrFail($building->id);
+        $availableTenants = $this->buildingTenantService->getAvailableTenants($building);
 
-        // Suggest tenants not already assigned to this building
-        $assignedIds = $building->tenants()->pluck('tenants.id')->all();
-        $tenants = Tenant::whereNotIn('id', $assignedIds)->orderBy('name')->paginate(20);
-
-        return view('admin.buildings.tenants.create', compact('building','tenants'));
+        return view('admin.buildings.tenants.create', compact('building', 'availableTenants'));
     }
 
-    public function store(Request $request, Building $building)
+    /**
+     * Assign tenant to building.
+     */
+    public function store(AssignTenantRequest $request, Building $building)
     {
-        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
+        $tenant = Tenant::findOrFail($request->validated()['tenant_id']);
 
-        $data = $request->validate([
-            'tenant_id'  => ['required','exists:tenants,id'],
-            'start_date' => ['nullable','date'],
-            'end_date'   => ['nullable','date','after_or_equal:start_date'],
-        ]);
+        try {
+            $this->buildingTenantService->assignTenantToBuilding($building, $tenant);
 
-        // attach (Admin approval)
-        $building->tenants()->syncWithoutDetaching([
-            $data['tenant_id'] => [
-                'start_date' => $data['start_date'] ?? now()->toDateString(),
-                'end_date'   => $data['end_date'] ?? null,
-            ]
-        ]);
-
-        return redirect()->route('admin.buildings.tenants.index', $building)
-            ->with('ok','Tenant assigned to building');
+            return redirect()
+                ->route('admin.buildings.tenants.index', $building)
+                ->with('ok', "Tenant '{$tenant->name}' assigned to building successfully.");
+        } catch (\Exception $e) {
+            return back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
     }
 
+    /**
+     * Remove tenant from building.
+     */
     public function destroy(Building $building, Tenant $tenant)
     {
-        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
+        try {
+            $this->buildingTenantService->removeTenantFromBuilding($building, $tenant);
 
-        $building->tenants()->detach($tenant->id); // remove approval
-        return redirect()->route('admin.buildings.tenants.index', $building)
-            ->with('ok','Tenant removed from building');
+            return back()->with('ok', "Tenant '{$tenant->name}' removed from building successfully.");
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Search tenants in building.
+     */
+    public function search(Building $building, Request $request)
+    {
+        $query = trim($request->get('q', ''));
+
+        if ($query) {
+            $tenants = $this->buildingTenantService->searchBuildingTenants($building, $query);
+            $stats = $this->buildingTenantService->getBuildingTenantStats($building);
+            return view('admin.buildings.tenants.search', compact('building', 'tenants', 'query', 'stats'));
+        }
+
+        return redirect()->route('admin.buildings.tenants.index', $building);
     }
 }

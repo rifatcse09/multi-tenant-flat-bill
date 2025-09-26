@@ -18,14 +18,6 @@ class FlatService
     }
 
     /**
-     * Get flats for a building (collection).
-     */
-    public function getFlatsByBuildingCollection(Building $building): Collection
-    {
-        return $building->flats()->orderBy('flat_number')->get(['id', 'flat_number']);
-    }
-
-    /**
      * Create a new flat for a building.
      */
     public function createFlat(Building $building, array $data): Flat
@@ -60,28 +52,7 @@ class FlatService
     }
 
     /**
-     * Check if flat number is unique within building (for creation).
-     */
-    public function isFlatNumberUniqueForBuilding(Building $building, string $flatNumber): bool
-    {
-        return !$building->flats()
-            ->where('flat_number', $flatNumber)
-            ->exists();
-    }
-
-    /**
-     * Check if flat number is unique within building (for update).
-     */
-    public function isFlatNumberUniqueForUpdate(Flat $flat, string $flatNumber): bool
-    {
-        return !Flat::where('building_id', $flat->building_id)
-            ->where('flat_number', $flatNumber)
-            ->where('id', '!=', $flat->id)
-            ->exists();
-    }
-
-    /**
-     * Get flat statistics for a building.
+     * Get building flat statistics.
      */
     public function getBuildingFlatStats(Building $building): array
     {
@@ -96,34 +67,6 @@ class FlatService
     }
 
     /**
-     * Search flats by criteria.
-     */
-    public function searchFlats(Building $building, string $query): Collection
-    {
-        return $building->flats()
-            ->where(function ($q) use ($query) {
-                $q->where('flat_number', 'like', "%{$query}%")
-                  ->orWhere('flat_owner_name', 'like', "%{$query}%")
-                  ->orWhere('flat_owner_phone', 'like', "%{$query}%");
-            })
-            ->orderBy('flat_number')
-            ->get();
-    }
-
-    /**
-     * Get flats with tenant information.
-     */
-    public function getFlatsWithTenants(Building $building): Collection
-    {
-        return $building->flats()
-            ->with(['tenants' => function ($query) {
-                $query->wherePivot('end_date', null); // Current tenants only
-            }])
-            ->orderBy('flat_number')
-            ->get();
-    }
-
-    /**
      * Check if flat can be deleted (no active tenants).
      */
     public function canDeleteFlat(Flat $flat): bool
@@ -131,30 +74,5 @@ class FlatService
         return !$flat->tenants()
             ->wherePivot('end_date', null)
             ->exists();
-    }
-
-    /**
-     * Get flat with building information.
-     */
-    public function getFlatWithBuilding(int $flatId): ?Flat
-    {
-        return Flat::with('building')->find($flatId);
-    }
-
-    /**
-     * Bulk create flats for a building.
-     */
-    public function bulkCreateFlats(Building $building, array $flatsData): int
-    {
-        $created = 0;
-
-        foreach ($flatsData as $flatData) {
-            if ($this->isFlatNumberUniqueForBuilding($building, $flatData['flat_number'])) {
-                $this->createFlat($building, $flatData);
-                $created++;
-            }
-        }
-
-        return $created;
     }
 }
