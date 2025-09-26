@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title','New Flat — '.$building->name)
+@section('title','New Flat to '.$building->name)
 
 @section('content')
-<h1 class="text-2xl font-semibold mb-4">Create Flat — {{ $building->name }}</h1>
+<h1 class="text-2xl font-semibold mb-4">Create Flat to {{ $building->name }}</h1>
 
 <form method="POST" action="{{ route('owner.buildings.flats.store',$building) }}"
       class="bg-white p-6 rounded-lg shadow-sm border max-w-xl">

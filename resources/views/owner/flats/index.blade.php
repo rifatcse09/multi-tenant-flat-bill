@@ -1,8 +1,8 @@
 @extends('layouts.app')
-@section('title','Flats — '.$building->name)
+@section('title','Flats of '.$building->name)
 
 @section('content')
-<h1 class="text-2xl font-semibold mb-2">Flats — {{ $building->name }}</h1>
+<h1 class="text-2xl font-semibold mb-2">Flats of {{ $building->name }}</h1>
 <p class="text-gray-600 mb-4">{{ $building->address }}</p>
 
 @if(session('ok')) <div class="mb-4 bg-green-100 p-3 rounded">{{ session('ok') }}</div> @endif

@@ -23,14 +23,14 @@
                         <td class="p-3">{{ $b->name }}</td>
                         <td class="p-3">{{ $b->address }}</td>
                         <td class="p-3">{{ $b->flats_count }}</td>
-                        <td class="p-3">
-                            <a href="{{ route('owner.buildings.tenants.index',$b) }}" class="text-indigo-700">
-                            View Tenants
+                        <td class="p-3 flex gap-2">
+                            <a href="{{ route('owner.buildings.tenants.index', $b) }}" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
+                                View Tenants
                             </a>
-                            <a href="{{ route('owner.buildings.flats.index', $b) }}" class="text-indigo-700 mr-3">
+                            <a href="{{ route('owner.buildings.flats.index', $b) }}" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
                                 View Flats
                             </a>
-                            <a href="{{ route('owner.buildings.flats.create', $b) }}" class="text-blue-700">
+                            <a href="{{ route('owner.buildings.flats.create', $b) }}" class="bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition">
                                 + Add Flat
                             </a>
                         </td>
