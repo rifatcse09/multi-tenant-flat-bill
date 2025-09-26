@@ -6,13 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::create('tenants', function (Blueprint $t) {
-            $t->id();
-            $t->string('name');
-            $t->string('email')->nullable()->unique();
-            $t->string('phone')->nullable();
-            $t->timestamps();
-        });
 
         Schema::create('flat_tenant', function (Blueprint $t) {
             $t->id();
@@ -26,6 +19,5 @@ return new class extends Migration {
     }
     public function down(): void {
         Schema::dropIfExists('flat_tenant');
-        Schema::dropIfExists('tenants');
     }
 };

@@ -12,6 +12,7 @@ return new class extends Migration {
             $t->string('name');
             $t->string('address')->nullable();
             $t->timestamps();
+            $t->softDeletes();
             $t->index('owner_id');
         });
     }

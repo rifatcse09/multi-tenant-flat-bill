@@ -14,6 +14,7 @@ return new class extends Migration {
             $t->string('flat_owner_name')->nullable();
             $t->string('flat_owner_phone')->nullable();
             $t->timestamps();
+            $t->softDeletes();
             $t->index(['owner_id','building_id']);
             $t->unique(['building_id','flat_number']);
         });

@@ -15,6 +15,7 @@ return new class extends Migration {
             $t->string('slug')->nullable()->unique();
             $t->rememberToken();
             $t->timestamps();
+            $t->softDeletes();
         });
     }
     public function down(): void { Schema::dropIfExists('users'); }
