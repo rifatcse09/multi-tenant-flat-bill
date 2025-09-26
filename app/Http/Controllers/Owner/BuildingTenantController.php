@@ -22,6 +22,8 @@ class BuildingTenantController extends Controller
             $q->where('building_id', $building->id)->withPivot(['start_date','end_date']);
         }]);
 
+        //dd($tenants);
+
         return view('owner.buildings.tenants.index', compact('building','tenants'));
     }
 }

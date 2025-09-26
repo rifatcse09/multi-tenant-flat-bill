@@ -46,7 +46,9 @@ class FlatController extends Controller
     }
 
     // Edit/update/destroy (flat is auto-scoped by OwnerScope)
-    public function edit(Flat $flat)  { return view('owner.flats.edit', compact('flat')); }
+    public function edit(Flat $flat)  {
+        return view('owner.flats.edit', compact('flat'));
+    }
 
     public function update(Request $request, Flat $flat)
     {

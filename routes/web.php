@@ -1,15 +1,16 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Owner\FlatController;
+use App\Http\Controllers\Owner\AssignFlatController;
+use App\Http\Controllers\Owner\BillCategoryController;
 use App\Http\Controllers\Admin\OwnerController as AdminOwner;
 use App\Http\Controllers\Admin\TenantController as AdminTenant;
 use App\Http\Controllers\Admin\BuildingController as AdminBuilding;
-use App\Http\Controllers\Admin\BuildingTenantController as AdminBuildingTenant;
 use App\Http\Controllers\Owner\BuildingController as OwnerBuilding;
+use App\Http\Controllers\Admin\BuildingTenantController as AdminBuildingTenant;
 use App\Http\Controllers\Owner\BuildingTenantController as OwnerBuildingTenant;
-use App\Http\Controllers\Owner\AssignFlatController;
-use App\Http\Controllers\Owner\FlatController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -73,6 +74,8 @@ Route::middleware(['auth','can:owner'])
         Route::get('flats/{flat}/edit', [FlatController::class,'edit'])->name('flats.edit');
         Route::put('flats/{flat}', [FlatController::class,'update'])->name('flats.update');
         Route::delete('flats/{flat}', [FlatController::class,'destroy'])->name('flats.destroy');
+
+        Route::resource('categories', BillCategoryController::class)->except(['show']);
 });
 
 
