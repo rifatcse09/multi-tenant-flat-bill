@@ -43,21 +43,14 @@
             {{ $t->pivot->start_date ?? '—' }} → {{ $t->pivot->end_date ?? 'present' }}
           </td>
           <td class="p-3">
-            @if($currentFlat)
-              <span class="inline-flex items-center px-2 py-1 rounded bg-green-50 text-green-700 text-sm">
-                Flat {{ $currentFlat->flat_number }}
-              </span>
-            @else
-              <span class="text-gray-500 text-sm">Not assigned</span>
-            @endif
+            <a href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $t->id]) }}" class="text-indigo-700">
+                View Assignments</a>
           </td>
           <td class="p-3">
-            <a href="{{ route('owner.buildings.tenants.assign.create', [$building->id, $t->id]) }}"
-               class="text-indigo-700 mr-3">Assign to Flat</a>
 
             {{-- Optional shortcuts --}}
-            {{-- <a href="{{ route('owner.bills.index', ['tenant_id' => $t->id, 'building_id' => $building->id]) }}"
-               class="text-blue-700 mr-3">View Bills</a> --}}
+            <a href="{{ route('owner.bills.index', ['tenant_id' => $t->id, 'building_id' => $building->id]) }}"
+               class="text-blue-700 mr-3">View Bills</a>
           </td>
         </tr>
       @empty

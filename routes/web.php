@@ -2,9 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Owner\BillController;
 use App\Http\Controllers\Owner\FlatController;
 use App\Http\Controllers\Owner\AssignFlatController;
 use App\Http\Controllers\Owner\BillCategoryController;
+use App\Http\Controllers\Owner\TenantOccupancyController;
 use App\Http\Controllers\Admin\OwnerController as AdminOwner;
 use App\Http\Controllers\Admin\TenantController as AdminTenant;
 use App\Http\Controllers\Admin\BuildingController as AdminBuilding;
@@ -76,6 +78,36 @@ Route::middleware(['auth','can:owner'])
         Route::delete('flats/{flat}', [FlatController::class,'destroy'])->name('flats.destroy');
 
         Route::resource('categories', BillCategoryController::class)->except(['show']);
+
+
+        // Tenant-wise flat assignments inside a building
+        Route::get('buildings/{building}/tenants/{tenant}/occupancies', [TenantOccupancyController::class,'index'])
+            ->name('buildings.tenants.occupancies.index');
+
+        Route::get('buildings/{building}/tenants/{tenant}/occupancies/create', [TenantOccupancyController::class,'create'])
+            ->name('buildings.tenants.occupancies.create');
+        Route::post('buildings/{building}/tenants/{tenant}/occupancies', [TenantOccupancyController::class,'store'])
+            ->name('buildings.tenants.occupancies.store');
+
+        Route::get('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}/edit', [TenantOccupancyController::class,'edit'])
+            ->name('buildings.tenants.occupancies.edit');
+        Route::put('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}', [TenantOccupancyController::class,'update'])
+            ->name('buildings.tenants.occupancies.update');
+
+        // End (set end_date = today or chosen date)
+        Route::put('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}/end', [TenantOccupancyController::class,'end'])
+            ->name('buildings.tenants.occupancies.end');
+
+        // Delete an incorrect record (rare, for mistakes)
+        Route::delete('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}', [TenantOccupancyController::class,'destroy'])
+            ->name('buildings.tenants.occupancies.destroy');
+
+         Route::resource('bills', BillController::class)
+            ->only(['index','create','store']);
+
+        // // Quick “move”: end current + create a new one in another flat
+        // Route::post('buildings/{building}/tenants/{tenant}/occupancies/move', [TenantOccupancyController::class,'move'])
+        //     ->name('buildings.tenants.occupancies.move');
 });
 
 
