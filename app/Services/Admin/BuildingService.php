@@ -4,31 +4,40 @@ namespace App\Services\Admin;
 
 use App\Models\Building;
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 
 class BuildingService
 {
     /**
-     * Get paginated buildings with search functionality.
+     * Get buildings with filters and pagination.
      */
-    public function paginateBuildings(string $search = '', int $perPage = 15): LengthAwarePaginator
+    public function getBuildingsWithFilters(array $filters = []): LengthAwarePaginator
     {
-        $query = Building::with('owner:id,name,email');
+        $search = $filters['search'] ?? '';
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('address', 'like', "%{$search}%")
-                  ->orWhereHas('owner', function ($ownerQuery) use ($search) {
-                      $ownerQuery->where('name', 'like', "%{$search}%")
-                                 ->orWhere('email', 'like', "%{$search}%");
-                  });
-            });
-        }
+        return Building::withoutGlobalScopes()
+            ->with('owner:id,name,email')
+            ->withCount(['flats', 'tenants'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%")
+                      ->orWhere('address', 'like', "%$search%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+    }
 
-        return $query->latest()->paginate($perPage);
+    /**
+     * Get all owners for dropdowns.
+     */
+    public function getOwnersForDropdown(): Collection
+    {
+        return User::where('role', 'owner')
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
     }
 
     /**
@@ -36,23 +45,27 @@ class BuildingService
      */
     public function createBuilding(array $data): Building
     {
-        return Building::create([
-            'name' => $data['name'],
-            'address' => $data['address'],
+        return Building::withoutGlobalScopes()->create([
             'owner_id' => $data['owner_id'],
+            'name' => $data['name'],
+            'address' => $data['address'] ?? null,
         ]);
     }
 
     /**
      * Update an existing building.
      */
-    public function updateBuilding(Building $building, array $data): bool
+    public function updateBuilding(Building $building, array $data): Building
     {
-        return $building->update([
-            'name' => $data['name'],
-            'address' => $data['address'],
+        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
+
+        $building->update([
             'owner_id' => $data['owner_id'],
+            'name' => $data['name'],
+            'address' => $data['address'] ?? null,
         ]);
+
+        return $building;
     }
 
     /**
@@ -60,99 +73,61 @@ class BuildingService
      */
     public function deleteBuilding(Building $building): bool
     {
-        // Check if building has flats with active tenants
-        $hasActiveTenants = $building->flats()
-            ->whereHas('tenants', function ($query) {
-                $query->whereNull('flat_tenant.end_date');
-            })->exists();
-
-        if ($hasActiveTenants) {
-            throw new \Exception('Cannot delete building with active tenants.');
-        }
-
+        $building = Building::withoutGlobalScopes()->findOrFail($building->id);
         return $building->delete();
     }
 
     /**
-     * Get all owners for dropdown.
+     * Get building with full details.
      */
-    public function getAllOwners(): Collection
+    public function getBuildingWithDetails(int $buildingId): Building
     {
-        return User::where('role', 'owner')->orderBy('name')->get(['id', 'name', 'email']);
+        return Building::withoutGlobalScopes()
+            ->with(['owner:id,name,email', 'flats', 'tenants'])
+            ->withCount(['flats', 'tenants'])
+            ->findOrFail($buildingId);
     }
 
     /**
-     * Get building statistics.
+     * Validate building data.
      */
-    public function getBuildingStats(Building $building): array
+    public function validateBuildingData(array $data, ?int $buildingId = null): array
     {
-        $totalFlats = $building->flats()->count();
-        $occupiedFlats = $building->flats()
-            ->whereHas('tenants', function ($query) {
-                $query->whereNull('flat_tenant.end_date');
-            })->count();
+        $rules = [
+            'owner_id' => ['required', 'exists:users,id'],
+            'name' => ['required', 'string', 'max:120'],
+            'address' => ['nullable', 'string', 'max:255'],
+        ];
 
-        $approvedTenants = $building->tenants()->count();
-        $activeTenants = DB::table('flat_tenant as ft')
-            ->join('flats as f', 'f.id', '=', 'ft.flat_id')
-            ->where('f.building_id', $building->id)
-            ->whereNull('ft.end_date')
-            ->distinct('ft.tenant_id')
-            ->count('ft.tenant_id');
+        return $rules;
+    }
+
+    /**
+     * Check if building can be deleted.
+     */
+    public function canDeleteBuilding(Building $building): array
+    {
+        $building = Building::withoutGlobalScopes()
+            ->withCount(['flats', 'tenants'])
+            ->findOrFail($building->id);
+
+        $canDelete = true;
+        $reasons = [];
+
+        if ($building->flats_count > 0) {
+            $canDelete = false;
+            $reasons[] = "Building has {$building->flats_count} flat(s)";
+        }
+
+        if ($building->tenants_count > 0) {
+            $canDelete = false;
+            $reasons[] = "Building has {$building->tenants_count} tenant(s)";
+        }
 
         return [
-            'total_flats' => $totalFlats,
-            'occupied_flats' => $occupiedFlats,
-            'vacant_flats' => $totalFlats - $occupiedFlats,
-            'approved_tenants' => $approvedTenants,
-            'active_tenants' => $activeTenants,
-            'occupancy_rate' => $totalFlats > 0 ? round(($occupiedFlats / $totalFlats) * 100, 1) : 0,
+            'can_delete' => $canDelete,
+            'reasons' => $reasons,
         ];
     }
 
-    /**
-     * Get building with detailed information.
-     */
-    public function getBuildingWithDetails(Building $building): Building
-    {
-        return $building->load([
-            'owner:id,name,email',
-            'flats' => function ($query) {
-                $query->orderBy('flat_number');
-            },
-            'tenants' => function ($query) {
-                $query->orderBy('name');
-            }
-        ]);
-    }
-
-    /**
-     * Get admin dashboard building statistics.
-     */
-    public function getAdminDashboardStats(): array
-    {
-        $totalBuildings = Building::count();
-        $totalFlats = DB::table('flats')->count();
-        $totalOccupiedFlats = DB::table('flat_tenant as ft')
-            ->join('flats as f', 'f.id', '=', 'ft.flat_id')
-            ->whereNull('ft.end_date')
-            ->distinct('f.id')
-            ->count('f.id');
-
-        $totalTenants = DB::table('tenants')->count();
-        $activeTenants = DB::table('flat_tenant as ft')
-            ->whereNull('ft.end_date')
-            ->distinct('ft.tenant_id')
-            ->count('ft.tenant_id');
-
-        return [
-            'total_buildings' => $totalBuildings,
-            'total_flats' => $totalFlats,
-            'occupied_flats' => $totalOccupiedFlats,
-            'vacant_flats' => $totalFlats - $totalOccupiedFlats,
-            'total_tenants' => $totalTenants,
-            'active_tenants' => $activeTenants,
-            'overall_occupancy_rate' => $totalFlats > 0 ? round(($totalOccupiedFlats / $totalFlats) * 100, 1) : 0,
-        ];
-    }
 }

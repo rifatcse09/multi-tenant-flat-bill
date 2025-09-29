@@ -30,7 +30,6 @@
     @endcan
     @can('owner')
       <a href="/owner/buildings" class="px-4 py-3 rounded border hover:bg-gray-50">Manage Buildings</a>
-      <a href="/owner/flats" class="px-4 py-3 rounded border hover:bg-gray-50">Manage Flats</a>
       <a href="/owner/categories" class="px-4 py-3 rounded border hover:bg-gray-50">Bill Categories</a>
       <a href="/owner/bills" class="px-4 py-3 rounded border hover:bg-gray-50">Create/View Bills</a>
     @endcan

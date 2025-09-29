@@ -38,7 +38,7 @@ class FlatController extends Controller
     {
         $data = $request->validated();
 
-        $flat = $this->flatService->createFlat($building, $data);
+        $this->flatService->createFlat($building, $data);
 
         return redirect()
             ->route('owner.buildings.flats.index', $building)
