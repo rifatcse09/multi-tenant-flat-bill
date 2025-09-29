@@ -64,12 +64,6 @@ Route::middleware(['auth','can:owner'])
         Route::get('buildings', [OwnerBuilding::class,'index'])->name('buildings.index');
         Route::get('buildings/{building}/tenants', [OwnerBuildingTenant::class, 'index'])->name('buildings.tenants.index');
 
-        // 2) assign a building-approved tenant to a flat inside that building
-        Route::get('buildings/{building}/tenants/{tenant}/assign', [AssignFlatController::class, 'create'])
-        ->name('buildings.tenants.assign.create');
-        Route::post('buildings/{building}/tenants/{tenant}/assign', [AssignFlatController::class, 'store'])
-        ->name('buildings.tenants.assign.store');
-
         // flats by building
         Route::get('buildings/{building}/flats', [FlatController::class,'indexByBuilding'])->name('buildings.flats.index');
         Route::get('buildings/{building}/flats/create', [FlatController::class,'createForBuilding'])->name('buildings.flats.create');
@@ -80,22 +74,12 @@ Route::middleware(['auth','can:owner'])
         Route::put('flats/{flat}', [FlatController::class,'update'])->name('flats.update');
         Route::delete('flats/{flat}', [FlatController::class,'destroy'])->name('flats.destroy');
 
+        // Bill categories management (CRUD except show)
         Route::resource('categories', BillCategoryController::class)->except(['show']);
 
-
         // Tenant-wise flat assignments inside a building
-        Route::get('buildings/{building}/tenants/{tenant}/occupancies', [TenantOccupancyController::class,'index'])
-            ->name('buildings.tenants.occupancies.index');
-
-        Route::get('buildings/{building}/tenants/{tenant}/occupancies/create', [TenantOccupancyController::class,'create'])
-            ->name('buildings.tenants.occupancies.create');
-        Route::post('buildings/{building}/tenants/{tenant}/occupancies', [TenantOccupancyController::class,'store'])
-            ->name('buildings.tenants.occupancies.store');
-
-        Route::get('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}/edit', [TenantOccupancyController::class,'edit'])
-            ->name('buildings.tenants.occupancies.edit');
-        Route::put('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}', [TenantOccupancyController::class,'update'])
-            ->name('buildings.tenants.occupancies.update');
+        Route::resource('buildings.tenants.occupancies', TenantOccupancyController::class)
+            ->only(['index', 'create', 'store', 'edit', 'update']);
 
         // End (set end_date = today or chosen date)
         Route::put('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}/end', [TenantOccupancyController::class,'end'])
@@ -105,17 +89,16 @@ Route::middleware(['auth','can:owner'])
         Route::delete('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}', [TenantOccupancyController::class,'destroy'])
             ->name('buildings.tenants.occupancies.destroy');
 
-         Route::resource('bills', BillController::class)
-            ->only(['index','create','store']);
+        // Bill CRUD routes for owners (except 'show')
+        Route::resource('bills', BillController::class)
+            ->only(['index','create','store','edit','update','destroy']);
 
-        Route::get('bills/{bill}/edit', [BillController::class, 'edit'])->name('bills.edit');
-        Route::put('bills/{bill}', [BillController::class, 'update'])->name('bills.update');
-        Route::delete('bills/{bill}', [BillController::class, 'destroy'])->name('bills.destroy');
+        // Show payments for a specific bill
         Route::get('bills/{bill}/payments', [BillController::class, 'payments'])->name('bills.payments');
 
-        Route::get('payments/create', [PaymentController::class,'create'])->name('payments.create');
-        Route::post('payments',        [PaymentController::class,'store'])->name('payments.store');
-        Route::delete('payments/{payment}', [PaymentController::class,'destroy'])->name('payments.destroy');
+        // Payments: allow create, store, and destroy only
+        Route::resource('payments', PaymentController::class)
+            ->only(['create', 'store', 'destroy']);
 
         Route::get('adjustments/create', [AdjustmentController::class,'create'])->name('adjustments.create');
         Route::post('adjustments',       [AdjustmentController::class,'store'])->name('adjustments.store');
