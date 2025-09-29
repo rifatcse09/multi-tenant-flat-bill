@@ -169,12 +169,16 @@ class UpdateBillRequest extends FormRequest
     /**
      * Get validated data with processed month.
      */
+    public function validated($key = null, $default = null): array
+    {
+        $validated = parent::validated($key, $default);
 
         // Ensure month is first day of month
         if (isset($validated['month'])) {
             $validated['month'] = Carbon::parse($validated['month'])->startOfMonth()->toDateString();
         }
 
-        return $validated;
-    }
-}
+
+
+
+}    }        return $validated;

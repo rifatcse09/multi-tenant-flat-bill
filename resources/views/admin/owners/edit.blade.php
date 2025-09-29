@@ -26,8 +26,8 @@
                             Owner Name <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="name" value="{{ old('name', $owner->name) }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
-                               required>
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
+                            required>
                         @error('name')
                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                         @enderror
@@ -39,8 +39,8 @@
                             Email Address <span class="text-red-500">*</span>
                         </label>
                         <input type="email" name="email" value="{{ old('email', $owner->email) }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('email') border-red-500 @enderror"
-                               required>
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('email') border-red-500 @enderror"
+                            required>
                         @error('email')
                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                         @enderror
@@ -52,21 +52,22 @@
                             New Password
                         </label>
                         <input type="password" name="password"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror">
                         @error('password')
                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                         @enderror
-                        <p class="text-sm text-gray-500 mt-1">Leave blank to keep current password. Minimum 8 characters if changing.</p>
+                        <p class="text-sm text-gray-500 mt-1">Leave blank to keep current password. Minimum 8 characters if
+                            changing.</p>
                     </div>
 
                     <!-- Form Actions -->
                     <div class="flex items-center justify-between pt-6 border-t border-gray-200">
                         <a href="{{ route('admin.owners.index') }}"
-                           class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
                             Cancel
                         </a>
                         <button type="submit"
-                                class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
                             Update Owner
                         </button>
                     </div>
@@ -79,7 +80,9 @@
             <div class="flex items-start">
                 <div class="flex-shrink-0">
                     <svg class="w-5 h-5 text-gray-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clip-rule="evenodd" />
                     </svg>
                 </div>
                 <div class="ml-3">
@@ -89,7 +92,7 @@
                             <li>Account created: {{ $owner->created_at->format('M d, Y') }}</li>
                             <li>Buildings owned: {{ $owner->buildings()->count() }}</li>
                             <li>Last updated: {{ $owner->updated_at->format('M d, Y H:i') }}</li>
-                            @if($owner->email_verified_at)
+                            @if ($owner->email_verified_at)
                                 <li>Email verified: {{ $owner->email_verified_at->format('M d, Y') }}</li>
                             @else
                                 <li class="text-orange-600">Email not verified</li>
