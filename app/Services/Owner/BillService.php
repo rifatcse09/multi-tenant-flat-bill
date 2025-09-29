@@ -5,6 +5,7 @@ namespace App\Services\Owner;
 use App\Models\Bill;
 use App\Models\Flat;
 use App\Models\BillCategory;
+use App\Services\NotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -12,6 +13,10 @@ use Carbon\Carbon;
 
 class BillService
 {
+    public function __construct(
+        private NotificationService $notificationService
+    ) {}
+
     /**
      * Create a monthly bill for a flat.
      */
@@ -57,18 +62,30 @@ class BillService
         }
 
         // 5) create bill
-        return Bill::create([
+        $bill = Bill::create([
             'owner_id'         => $ownerId,
             'flat_id'          => $flatId,
             'bill_category_id' => $categoryId,
             'tenant_id'        => $tenant?->id,
-            'bill_to'          => $billTo,
             'month'            => $month,
             'amount'           => $amount,
             'due_carry_forward'=> $carry,
             'status'           => 'unpaid',
             'notes'            => $notes,
         ]);
+
+        // Send notifications
+        try {
+            $this->notificationService->sendBillCreatedNotifications($bill);
+        } catch (\Exception $e) {
+            // Log notification failure but don't break bill creation
+            \Log::error('Failed to send bill created notifications', [
+                'bill_id' => $bill->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+
+        return $bill;
     }
 
     /**
@@ -81,7 +98,6 @@ class BillService
             ->when($filters['flat_id'] ?? null, fn($q, $v) => $q->where('flat_id', $v))
             ->when($filters['category_id'] ?? null, fn($q, $v) => $q->where('bill_category_id', $v))
             ->when($filters['status'] ?? null, fn($q, $v) => $q->where('status', $v))
-            ->when($filters['bill_to'] ?? null, fn($q, $v) => $q->where('bill_to', $v))
             ->when($filters['month_from'] ?? null, fn($q, $v) => $q->whereDate('month', '>=', date('Y-m-01', strtotime($v.'-01'))))
             ->when($filters['month_to'] ?? null, fn($q, $v) => $q->whereDate('month', '<=', date('Y-m-t', strtotime($v.'-01'))))
             ->when($filters['q'] ?? null, function ($q, $v) {
@@ -102,7 +118,6 @@ class BillService
             ->when($filters['flat_id'] ?? null, fn($q, $v) => $q->where('flat_id', $v))
             ->when($filters['category_id'] ?? null, fn($q, $v) => $q->where('bill_category_id', $v))
             ->when($filters['status'] ?? null, fn($q, $v) => $q->where('status', $v))
-            ->when($filters['bill_to'] ?? null, fn($q, $v) => $q->where('bill_to', $v))
             ->when($filters['month_from'] ?? null, fn($q, $v) => $q->whereDate('month', '>=', date('Y-m-01', strtotime($v.'-01'))))
             ->when($filters['month_to'] ?? null, fn($q, $v) => $q->whereDate('month', '<=', date('Y-m-t', strtotime($v.'-01'))))
             ->when($filters['q'] ?? null, function ($q, $v) {
@@ -200,10 +215,30 @@ class BillService
 
         return [
             'total_bills' => $totalBills,
+            'current_month_bills' => $currentMonthBills,
+            'unpaid_amount' => $unpaidAmount,
+            'this_month_collection' => $thisMonthCollection,
+        ];
+    }
 
+    /**
+     * Update bill status based on payments.
+     */
+    public function updateBillStatus(Bill $bill): void
+    {
+        $totalPaid = $bill->payments()->sum('amount');
+        $totalDue = $bill->amount + $bill->due_carry_forward;
 
+        if ($totalPaid <= 0) {
+            $status = 'unpaid';
+        } elseif ($totalPaid >= $totalDue) {
+            $status = 'paid';
+        } else {
+            $status = 'partial';
+        }
 
-
-
-
-}    }        ];            'this_month_collection' => $thisMonthCollection,            'unpaid_amount' => $unpaidAmount,            'current_month_bills' => $currentMonthBills,
+        if ($bill->status !== $status) {
+            $bill->update(['status' => $status]);
+        }
+    }
+}

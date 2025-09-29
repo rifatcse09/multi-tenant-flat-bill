@@ -2,23 +2,16 @@
 
 namespace App\Models;
 
-use App\Scopes\OwnerScope;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
-        'owner_id',
-        'tenant_id',
         'bill_id',
         'amount',
         'paid_at',
-        'payment_method',
-        'notes',
+        'method', // Use 'method' instead of 'payment_method'
     ];
 
     protected $casts = [
@@ -26,11 +19,7 @@ class Payment extends Model
         'amount' => 'decimal:2',
     ];
 
-    protected static function booted() {
-        static::addGlobalScope(new OwnerScope);
-    }
-
-    public function bill()
+    public function bill(): BelongsTo
     {
         return $this->belongsTo(Bill::class);
     }
@@ -41,5 +30,23 @@ class Payment extends Model
     public function scopeDateRange($query, $startDate, $endDate)
     {
         return $query->whereBetween('paid_at', [$startDate, $endDate]);
+    }
+
+    /**
+     * Scope payments by owner through bill relationship.
+     */
+    public function scopeForOwner($query, $ownerId)
+    {
+        return $query->whereHas('bill', function ($q) use ($ownerId) {
+            $q->where('owner_id', $ownerId);
+        });
+    }
+
+    /**
+     * Get the payment method for display.
+     */
+    public function getPaymentMethodAttribute()
+    {
+        return ucfirst($this->method ?? 'cash');
     }
 }

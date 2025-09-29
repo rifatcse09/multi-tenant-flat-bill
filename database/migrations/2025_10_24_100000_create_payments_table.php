@@ -15,6 +15,7 @@ return new class extends Migration {
       $t->string('reference')->nullable();
       $t->json('meta')->nullable();
       $t->timestamps();
+      $t->softDeletes();
     });
   }
   public function down(): void { Schema::dropIfExists('payments'); }

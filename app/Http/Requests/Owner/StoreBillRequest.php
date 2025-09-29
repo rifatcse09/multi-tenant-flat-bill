@@ -2,9 +2,6 @@
 
 namespace App\Http\Requests\Owner;
 
-use App\Models\Bill;
-use App\Models\Flat;
-use App\Models\BillCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Carbon\Carbon;
 
@@ -19,16 +16,34 @@ class StoreBillRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Convert month input to first day of month if needed
+        if ($this->filled('month')) {
+            $monthValue = $this->input('month');
+
+            // If input is like "2024-01", convert to "2024-01-01"
+            if (strlen($monthValue) === 7 && preg_match('/^\d{4}-\d{2}$/', $monthValue)) {
+                $this->merge([
+                    'month' => $monthValue . '-01'
+                ]);
+            }
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
         return [
-            'flat_id'          => ['required', 'exists:flats,id'],
+            'flat_id' => ['required', 'exists:flats,id'],
             'bill_category_id' => ['required', 'exists:bill_categories,id'],
-            'month'            => ['required', 'date'],
-            'amount'           => ['required', 'numeric', 'min:0'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
+            'month' => ['required', 'date'],
+            'amount' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
+            'notes' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -42,12 +57,13 @@ class StoreBillRequest extends FormRequest
             'flat_id.exists' => 'The selected flat does not exist.',
             'bill_category_id.required' => 'Please select a bill category.',
             'bill_category_id.exists' => 'The selected category does not exist.',
-            'month.required' => 'Please select a month.',
-            'month.date' => 'Please enter a valid date.',
-            'amount.required' => 'Please enter the bill amount.',
-            'amount.numeric' => 'Amount must be a valid number.',
-            'amount.min' => 'Amount must be greater than or equal to 0.',
-            'notes.max' => 'Notes cannot exceed 1000 characters.',
+            'month.required' => 'Bill month is required.',
+            'month.date' => 'Please enter a valid month.',
+            'amount.required' => 'Bill amount is required.',
+            'amount.numeric' => 'Bill amount must be a valid number.',
+            'amount.min' => 'Bill amount must be at least $0.01.',
+            'amount.max' => 'Bill amount cannot exceed $999,999.99.',
+            'notes.max' => 'Notes cannot exceed 500 characters.',
         ];
     }
 
@@ -57,94 +73,28 @@ class StoreBillRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
-            $this->validateOwnership($validator);
-            $this->validateTenantAssignment($validator);
-            $this->validateUniqueBill($validator);
-        });
-    }
+            // Verify the flat belongs to the authenticated owner
+            if ($this->filled('flat_id')) {
+                $flat = \App\Models\Flat::where('id', $this->flat_id)
+                    ->where('owner_id', auth()->id())
+                    ->first();
 
-    /**
-     * Validate that the flat and category belong to the authenticated owner.
-     */
-    protected function validateOwnership($validator): void
-    {
-        $ownerId = auth()->id();
-
-        // Check flat ownership
-        if ($this->filled('flat_id')) {
-            $flat = Flat::where('id', $this->flat_id)
-                       ->where('owner_id', $ownerId)
-                       ->first();
-
-            if (!$flat) {
-                $validator->errors()->add('flat_id', 'You can only create bills for your own flats.');
-            }
-        }
-
-        // Check category ownership
-        if ($this->filled('bill_category_id')) {
-            $category = BillCategory::where('id', $this->bill_category_id)
-                                   ->where('owner_id', $ownerId)
-                                   ->first();
-
-            if (!$category) {
-                $validator->errors()->add('bill_category_id', 'You can only use your own bill categories.');
-            }
-        }
-    }
-
-    /**
-     * Validate that the flat has an assigned tenant for the bill month.
-     */
-    protected function validateTenantAssignment($validator): void
-    {
-        if ($this->filled(['flat_id', 'month'])) {
-            $month = Carbon::parse($this->month)->startOfMonth()->toDateString();
-            $flat = Flat::find($this->flat_id);
-
-            if ($flat) {
-                // Check if flat has a tenant assigned for this month
-                $tenant = $flat->tenantForMonth($month);
-
-                if (!$tenant) {
-                    $validator->errors()->add('flat_id', 'Cannot create bill for this flat. No tenant is assigned for ' . Carbon::parse($month)->format('F Y') . '. Please assign a tenant first.');
+                if (!$flat) {
+                    $validator->errors()->add('flat_id', 'You can only create bills for your own flats.');
                 }
             }
-        }
-    }
 
-    /**
-     * Validate that no duplicate bill exists for the same flat, category, and month.
-     */
-    protected function validateUniqueBill($validator): void
-    {
-        if ($this->filled(['flat_id', 'bill_category_id', 'month'])) {
-            $month = Carbon::parse($this->month)->startOfMonth()->toDateString();
+            // Verify the category belongs to the authenticated owner
+            if ($this->filled('bill_category_id')) {
+                $category = \App\Models\BillCategory::where('id', $this->bill_category_id)
+                    ->where('owner_id', auth()->id())
+                    ->first();
 
-            $exists = Bill::where('owner_id', auth()->id())
-                         ->where('flat_id', $this->flat_id)
-                         ->where('bill_category_id', $this->bill_category_id)
-                         ->where('month', $month)
-                         ->exists();
-
-            if ($exists) {
-                $validator->errors()->add('month', 'A bill already exists for this flat, category, and month.');
+                if (!$category) {
+                    $validator->errors()->add('bill_category_id', 'You can only use your own bill categories.');
+                }
             }
-        }
-    }
-
-    /**
-     * Prepare the data for validation.
-     */
-    protected function prepareForValidation(): void
-    {
-        // Convert month input to first day of month if needed
-        if ($this->filled('month') && strlen($this->month) === 7) {
-            // If input is like "2024-01", convert to "2024-01-01"
-            $this->merge([
-                'month' => $this->month . '-01'
-            ]);
-        }
+        });
     }
 
     /**

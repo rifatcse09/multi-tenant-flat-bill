@@ -22,6 +22,24 @@ class UpdateBillRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Convert month input to first day of month if needed
+        if ($this->filled('month')) {
+            $monthValue = $this->input('month');
+
+            // If input is like "2024-01", convert to "2024-01-01"
+            if (strlen($monthValue) === 7 && preg_match('/^\d{4}-\d{2}$/', $monthValue)) {
+                $this->merge([
+                    'month' => $monthValue . '-01'
+                ]);
+            }
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
@@ -30,8 +48,8 @@ class UpdateBillRequest extends FormRequest
             'flat_id'          => ['required', 'exists:flats,id'],
             'bill_category_id' => ['required', 'exists:bill_categories,id'],
             'month'            => ['required', 'date'],
-            'amount'           => ['required', 'numeric', 'min:0'],
-            'notes'            => ['nullable', 'string', 'max:1000'],
+            'amount'           => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
+            'notes'            => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -45,12 +63,13 @@ class UpdateBillRequest extends FormRequest
             'flat_id.exists' => 'The selected flat does not exist.',
             'bill_category_id.required' => 'Please select a bill category.',
             'bill_category_id.exists' => 'The selected category does not exist.',
-            'month.required' => 'Please select a month.',
-            'month.date' => 'Please enter a valid date.',
-            'amount.required' => 'Please enter the bill amount.',
-            'amount.numeric' => 'Amount must be a valid number.',
-            'amount.min' => 'Amount must be greater than or equal to 0.',
-            'notes.max' => 'Notes cannot exceed 1000 characters.',
+            'month.required' => 'Bill month is required.',
+            'month.date' => 'Please enter a valid month.',
+            'amount.required' => 'Bill amount is required.',
+            'amount.numeric' => 'Bill amount must be a valid number.',
+            'amount.min' => 'Bill amount must be at least $0.01.',
+            'amount.max' => 'Bill amount cannot exceed $999,999.99.',
+            'notes.max' => 'Notes cannot exceed 500 characters.',
         ];
     }
 
@@ -149,20 +168,6 @@ class UpdateBillRequest extends FormRequest
         // Only allow updates to unpaid bills
         if ($bill->status !== 'unpaid') {
             $validator->errors()->add('bill', 'Only unpaid bills can be updated. This bill has status: ' . $bill->status);
-        }
-    }
-
-    /**
-     * Prepare the data for validation.
-     */
-    protected function prepareForValidation(): void
-    {
-        // Convert month input to first day of month if needed
-        if ($this->filled('month') && strlen($this->month) === 7) {
-            // If input is like "2024-01", convert to "2024-01-01"
-            $this->merge([
-                'month' => $this->month . '-01'
-            ]);
         }
     }
 

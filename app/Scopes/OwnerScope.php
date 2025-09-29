@@ -14,5 +14,6 @@ class OwnerScope implements Scope
         if ($user && $user->role === 'owner') {
             $query->where($model->getTable().'.owner_id', $user->id);
         }
-    }
+
+ }
 }

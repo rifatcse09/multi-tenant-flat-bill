@@ -18,6 +18,7 @@ return new class extends Migration {
             $t->enum('status',['paid','unpaid' ,'partial'])->default('unpaid');
             $t->string('notes',255)->nullable();
             $t->timestamps();
+            $t->softDeletes();
             $t->index(['owner_id','flat_id','bill_category_id','month']);
             $t->unique(['flat_id','bill_category_id','month']);
         });

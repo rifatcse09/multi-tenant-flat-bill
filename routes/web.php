@@ -115,14 +115,10 @@ Route::middleware(['auth','can:owner'])
 
         Route::get('payments/create', [PaymentController::class,'create'])->name('payments.create');
         Route::post('payments',        [PaymentController::class,'store'])->name('payments.store');
+        Route::delete('payments/{payment}', [PaymentController::class,'destroy'])->name('payments.destroy');
 
         Route::get('adjustments/create', [AdjustmentController::class,'create'])->name('adjustments.create');
         Route::post('adjustments',       [AdjustmentController::class,'store'])->name('adjustments.store');
 });
-
-
-
-
-
 
 require __DIR__.'/auth.php';

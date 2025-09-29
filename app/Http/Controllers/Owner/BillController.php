@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Owner;
 
+use App\Models\Bill;
+use App\Models\Payment;
+use Illuminate\Http\Request;
+use App\Services\Owner\BillService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StoreBillRequest;
 use App\Http\Requests\Owner\UpdateBillRequest;
-use App\Services\Owner\BillService;
-use App\Models\Bill;
-use Illuminate\Http\Request;
 
 class BillController extends Controller
 {
@@ -21,7 +22,6 @@ class BillController extends Controller
             'flat_id'      => $request->integer('flat_id'),
             'category_id'  => $request->integer('category_id'),
             'status'       => $request->get('status'),
-            'bill_to'      => $request->get('bill_to'),
             'month_from'   => $request->get('month_from'),
             'month_to'     => $request->get('month_to'),
             'q'            => trim($request->get('q', '')), // tenant name/email
@@ -108,12 +108,13 @@ class BillController extends Controller
                 return back()->with('error', 'Only unpaid bills can be deleted. This bill has status: ' . $bill->status);
             }
 
-            // Check if bill has any payments
+            // Check if bill has any payments (hard delete check for payments)
             $paymentsCount = $bill->payments()->count();
             if ($paymentsCount > 0) {
                 return back()->with('error', 'Cannot delete bill that has payments. Please remove payments first.');
             }
 
+            // Soft delete the bill (bills use soft deletes)
             $bill->delete();
             return back()->with('ok', 'Bill deleted successfully');
         } catch (\Exception $e) {
@@ -126,7 +127,8 @@ class BillController extends Controller
         // Ensure owner can only view payments for their own bills
         abort_unless($bill->owner_id === auth()->id(), 403);
 
-        $payments = $bill->payments()
+        // Get payments without scope issues
+        $payments = Payment::where('bill_id', $bill->id)
             ->orderBy('paid_at', 'desc')
             ->get();
 
@@ -136,4 +138,5 @@ class BillController extends Controller
 
         return view('owner.bills.payments', compact('bill', 'payments', 'totalPaid', 'totalDue', 'remaining'));
     }
+
 }

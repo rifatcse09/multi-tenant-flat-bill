@@ -11,6 +11,7 @@ return new class extends Migration {
             $t->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
             $t->string('name');
             $t->timestamps();
+            $t->softDeletes();
             $t->unique(['owner_id','name']);
         });
     }
