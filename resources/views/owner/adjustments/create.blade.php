@@ -1,10 +1,10 @@
 @extends('layouts.app')
-@section('title','Add Payment')
+@section('title','Add Due / Adjustment')
 
 @section('content')
-<h1 class="text-2xl font-semibold mb-4">Add Payment</h1>
+<h1 class="text-2xl font-semibold mb-4">Add Due / Adjustment</h1>
 
-<form method="POST" action="{{ route('owner.payments.store') }}" class="bg-white p-6 rounded-lg shadow-sm border max-w-xl">
+<form method="POST" action="{{ route('owner.adjustments.store') }}" class="bg-white p-6 rounded-lg shadow-sm border max-w-xl">
   @csrf
 
   <label class="block mb-3">
@@ -29,30 +29,25 @@
   <label class="block mb-3">
     <span class="text-sm text-gray-700">Amount</span>
     <input type="number" step="0.01" name="amount" value="{{ old('amount') }}" class="mt-1 w-full border p-2 rounded" required>
+    <div class="text-xs text-gray-500 mt-1">Positive = add due; Negative = discount/waiver.</div>
     @error('amount')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
-
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Paid at</span>
-    <input type="datetime-local" name="paid_at" value="{{ old('paid_at', now()->format('Y-m-d\TH:i')) }}" class="mt-1 w-full border p-2 rounded" required>
-    @error('paid_at')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
   </label>
 
   <div class="grid grid-cols-2 gap-3">
     <label class="block">
-      <span class="text-sm text-gray-700">Method (optional)</span>
-      <input name="method" value="{{ old('method') }}" class="mt-1 w-full border p-2 rounded" placeholder="Cash / Bank / bKash / Card">
-      @error('method')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+      <span class="text-sm text-gray-700">Type (optional)</span>
+      <input name="type" value="{{ old('type','manual_due') }}" class="mt-1 w-full border p-2 rounded">
+      @error('type')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
     </label>
     <label class="block">
-      <span class="text-sm text-gray-700">Reference (optional)</span>
-      <input name="reference" value="{{ old('reference') }}" class="mt-1 w-full border p-2 rounded" placeholder="Txn ID / Slip No">
-      @error('reference')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
+      <span class="text-sm text-gray-700">Reason (optional)</span>
+      <input name="reason" value="{{ old('reason') }}" class="mt-1 w-full border p-2 rounded">
+      @error('reason')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
     </label>
   </div>
 
   <div class="mt-5 flex gap-2">
-    <button class="bg-indigo-600 text-white px-4 py-2 rounded">Save Payment</button>
+    <button class="bg-amber-600 text-white px-4 py-2 rounded">Add Adjustment</button>
     <a href="{{ route('owner.bills.index') }}" class="px-4 py-2 border rounded">Cancel</a>
   </div>
 </form>

@@ -108,9 +108,7 @@
           <td class="p-3">Flat {{ $b->flat?->flat_number }}</td>
           <td class="p-3">{{ $b->category?->name }}</td>
           <td class="p-3">
-            @if($b->bill_to === 'tenant')
-              Tenant — <span class="text-sm text-gray-700">{{ $b->tenant?->name ?? 'N/A' }}</span>
-            @else Owner @endif
+            Tenant — <span class="text-sm text-gray-700">{{ $b->tenant?->name ?? 'N/A' }}</span>
           </td>
           <td class="p-3">{{ number_format($b->amount,2) }}</td>
           <td class="p-3">{{ number_format($b->due_carry_forward,2) }}</td>
@@ -125,6 +123,13 @@
             </span>
           </td>
           <td class="p-3">
+
+            <a href="{{ route('owner.payments.create', ['bill_id' => $b->id]) }}" class="text-indigo-700 mr-3">
+            Pay Now
+            </a>
+            <a href="{{ route('owner.adjustments.create', ['bill_id' => $b->id]) }}" class="text-amber-700 mr-3">
+            Add Due / Adjustment
+            </a>
             {{-- placeholders; wire your routes if you have show/pay --}}
             {{-- <a href="{{ route('owner.bills.edit', $b->id ?? 0) }}" class="text-blue-700 mr-3">Edit</a>
             <a href="{{ route('owner.payments.create', ['bill_id' => $b->id]) }}" class="text-indigo-700 mr-3">Add Payment</a>

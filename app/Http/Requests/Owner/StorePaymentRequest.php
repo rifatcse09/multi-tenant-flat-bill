@@ -19,7 +19,7 @@ class StorePaymentRequest extends FormRequest
             'amount'    => ['required','numeric','min:0.01'],
             'paid_at'   => ['required','date'],
             'method'    => ['nullable','string','max:50'],
-            'ref' => ['nullable','string','max:120'],
+            'reference' => ['nullable','string','max:120'],
         ];
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Bill extends Model
 {
     protected $fillable = [
-        'owner_id','flat_id','bill_category_id','tenant_id','bill_to',
+        'owner_id','flat_id','bill_category_id','tenant_id',
         'month','amount','status','notes','due_carry_forward'
     ];
 
@@ -41,5 +41,30 @@ class Bill extends Model
     public function getTotalDueAttribute() {
         $paid = $this->payments()->sum('amount');
         return max(0, ($this->amount + $this->due_carry_forward) - $paid);
+    }
+
+    public function adjustments()
+    {
+        return $this->hasMany(BillAdjustment::class);
+    }
+
+    public function getPaidAttribute(): float
+    {
+        return (float)$this->payments()->sum('amount');
+    }
+
+    public function getAdjustmentsTotalAttribute(): float
+    {
+        return (float)$this->adjustments()->sum('amount');
+    }
+
+    public function getGrossAttribute(): float
+    {
+        return (float)$this->amount + (float)$this->due_carry_forward + (float)$this->adjustments_total;
+    }
+
+    public function getDueAttribute(): float
+    {
+        return max(0.0, $this->gross - $this->paid);
     }
 }

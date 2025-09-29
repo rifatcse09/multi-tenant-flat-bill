@@ -6,7 +6,7 @@ use App\Models\Bill;
 use App\Models\Flat;
 use App\Models\BillCategory;
 use Illuminate\Http\Request;
-use App\Services\BillService;
+use App\Services\Owner\BillService;
 use App\Http\Controllers\Controller;
 
 class BillController extends Controller
@@ -32,7 +32,7 @@ class BillController extends Controller
             ->when($filters['flat_id'],     fn($q,$v) => $q->where('flat_id', $v))
             ->when($filters['category_id'], fn($q,$v) => $q->where('bill_category_id', $v))
             ->when($filters['status'],      fn($q,$v) => $q->where('status', $v))
-            ->when($filters['bill_to'],     fn($q,$v) => $q->where('bill_to', $v))
+            ->when($filters['bill_to'],     fn($q,$v) => $q->where('name,', $v))
             ->when($filters['month_from'],  fn($q,$v) => $q->whereDate('month', '>=', date('Y-m-01', strtotime($v.'-01'))))
             ->when($filters['month_to'],    fn($q,$v) => $q->whereDate('month', '<=', date('Y-m-t', strtotime($v.'-01'))))
             ->when($filters['q'], function ($q, $v) {

@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Owner;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Owner\StoreUpdateBillCategoryRequest as CategoryRequest;
 use App\Models\BillCategory;
-use App\Services\BillCategoryService;
+use App\Services\Owner\BillCategoryService;
 use Illuminate\Http\Request;
 
 class BillCategoryController extends Controller

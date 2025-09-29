@@ -37,6 +37,8 @@
                     <a href="/owner/buildings" class="block px-3 py-2 rounded hover:bg-gray-100">Buildings</a>
                     <a href="/owner/categories" class="block px-3 py-2 rounded hover:bg-gray-100">Bill Categories</a>
                     <a href="/owner/bills" class="block px-3 py-2 rounded hover:bg-gray-100">Bills</a>
+                    <a href="{{ route('owner.payments.create') }}" class="block px-3 py-2 rounded hover:bg-gray-100">Add Payment</a>
+                    <a href="{{ route('owner.adjustments.create') }}" class="block px-3 py-2 rounded hover:bg-gray-100">Add Due / Adjustment</a>
                 @endcan
             </nav>
         </aside>

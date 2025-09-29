@@ -3,19 +3,19 @@
 namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Owner\StorePaymentRequest;
+use App\Http\Requests\Owner\StoreAdjustmentRequest;
 use App\Models\Bill;
-use App\Services\Owner\PaymentService;
+use App\Services\Owner\AdjustmentService;
 use Illuminate\Http\Request;
 
-class PaymentController extends Controller
+class AdjustmentController extends Controller
 {
-  public function __construct(private PaymentService $service) {}
+  public function __construct(private AdjustmentService $service) {}
 
   public function create(Request $request)
   {
     $ownerId = auth()->id();
-    $billId = (int)$request->get('bill_id', 0);
+    $billId = (int)$request->get('bill_id',0);
 
     $bill = $billId
       ? Bill::where('owner_id',$ownerId)->with(['flat:id,flat_number','category:id,name','tenant:id,name'])->findOrFail($billId)
@@ -25,21 +25,20 @@ class PaymentController extends Controller
       ->with(['flat:id,flat_number','category:id,name','tenant:id,name'])
       ->orderByDesc('month')->limit(50)->get();
 
-    return view('owner/payments/create', compact('bill','bills'));
+    return view('owner/adjustments/create', compact('bill','bills'));
   }
 
-  public function store(StorePaymentRequest $request)
+  public function store(StoreAdjustmentRequest $request)
   {
     $d = $request->validated();
-    $this->service->addPayment(
+    $this->service->addDue(
       ownerId: auth()->id(),
       billId: (int)$d['bill_id'],
       amount: (float)$d['amount'],
-      paidAt: $d['paid_at'],
-      method: $d['method'] ?? null,
-      reference: $d['reference'] ?? null
+      reason: $d['reason'] ?? null,
+      type: $d['type'] ?? 'manual_due'
     );
 
-    return redirect()->route('owner.bills.index')->with('ok','Payment recorded.');
+    return redirect()->route('owner.bills.index')->with('ok','Adjustment added.');
   }
 }

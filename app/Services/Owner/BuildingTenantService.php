@@ -3,7 +3,6 @@
 namespace App\Services\Owner;
 
 use App\Models\Building;
-use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;

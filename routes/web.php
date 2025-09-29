@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Owner\BillController;
 use App\Http\Controllers\Owner\FlatController;
+use App\Http\Controllers\Owner\PaymentController;
+use App\Http\Controllers\Owner\AdjustmentController;
 use App\Http\Controllers\Owner\AssignFlatController;
 use App\Http\Controllers\Owner\BillCategoryController;
 use App\Http\Controllers\Owner\TenantOccupancyController;
@@ -15,7 +17,7 @@ use App\Http\Controllers\Admin\BuildingTenantController as AdminBuildingTenant;
 use App\Http\Controllers\Owner\BuildingTenantController as OwnerBuildingTenant;
 
 Route::get('/', function () {
-    return view('welcome');
+     return redirect()->route('login');
 });
 
 Route::get('/dashboard', function () {
@@ -105,9 +107,11 @@ Route::middleware(['auth','can:owner'])
          Route::resource('bills', BillController::class)
             ->only(['index','create','store']);
 
-        // // Quick “move”: end current + create a new one in another flat
-        // Route::post('buildings/{building}/tenants/{tenant}/occupancies/move', [TenantOccupancyController::class,'move'])
-        //     ->name('buildings.tenants.occupancies.move');
+        Route::get('payments/create', [PaymentController::class,'create'])->name('payments.create');
+        Route::post('payments',        [PaymentController::class,'store'])->name('payments.store');
+
+        Route::get('adjustments/create', [AdjustmentController::class,'create'])->name('adjustments.create');
+        Route::post('adjustments',       [AdjustmentController::class,'store'])->name('adjustments.store');
 });
 
 

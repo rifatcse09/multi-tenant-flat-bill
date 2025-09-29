@@ -1,6 +1,5 @@
 <?php
 
-// app/Services/BillCategoryService.php
 namespace App\Services\Owner;
 
 use App\Models\BillCategory;

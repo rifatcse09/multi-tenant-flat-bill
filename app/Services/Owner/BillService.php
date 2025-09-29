@@ -5,7 +5,6 @@ namespace App\Services\Owner;
 use App\Models\Bill;
 use App\Models\Flat;
 use App\Models\BillCategory;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
