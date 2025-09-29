@@ -6,7 +6,6 @@ use App\Http\Controllers\Owner\BillController;
 use App\Http\Controllers\Owner\FlatController;
 use App\Http\Controllers\Owner\PaymentController;
 use App\Http\Controllers\Owner\AdjustmentController;
-use App\Http\Controllers\Owner\AssignFlatController;
 use App\Http\Controllers\Owner\BillCategoryController;
 use App\Http\Controllers\Owner\TenantOccupancyController;
 use App\Http\Controllers\Admin\OwnerController as AdminOwner;
@@ -25,38 +24,30 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::resource('owners', ProfileController::class)
+    ->only(['edit', 'update', 'destroy']);
 });
 
 Route::middleware(['auth','can:admin'])
     ->prefix('admin')->name('admin.')
     ->group(function () {
-        Route::get('/owners',        [AdminOwner::class, 'index'])->name('owners.index');
-        Route::get('/owners/create', [AdminOwner::class, 'create'])->name('owners.create');
-        Route::post('/owners',       [AdminOwner::class, 'store'])->name('owners.store');
-        Route::get('/owners/{owner}/edit', [AdminOwner::class, 'edit'])->name('owners.edit');
-        Route::put('/owners/{owner}',       [AdminOwner::class, 'update'])->name('owners.update');
-        Route::delete('/owners/{owner}',    [AdminOwner::class, 'destroy'])->name('owners.destroy');
 
-        Route::get('/tenants',        [AdminTenant::class, 'index'])->name('tenants.index');
-        Route::get('/tenants/create', [AdminTenant::class, 'create'])->name('tenants.create');
-        Route::post('/tenants',       [AdminTenant::class, 'store'])->name('tenants.store');
-        Route::get('/tenants/{tenant}/edit', [AdminTenant::class, 'edit'])->name('tenants.edit');
-        Route::put('/tenants/{tenant}',       [AdminTenant::class, 'update'])->name('tenants.update');
-        Route::delete('/tenants/{tenant}',    [AdminTenant::class, 'destroy'])->name('tenants.destroy');
-        Route::get('/tenants/{tenant}', [AdminTenant::class, 'show'])->name('tenants.show');
+        // Owners management (admin scope)
+        Route::resource('owners', AdminOwner::class)
+        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
 
-        Route::get('buildings/{building}/tenants',          [AdminBuildingTenant::class, 'index'])->name('buildings.tenants.index');
-        Route::get('buildings/{building}/tenants/create',   [AdminBuildingTenant::class, 'create'])->name('buildings.tenants.create');
-        Route::post('buildings/{building}/tenants',         [AdminBuildingTenant::class, 'store'])->name('buildings.tenants.store');
-        Route::delete('buildings/{building}/tenants/{tenant}', [AdminBuildingTenant::class, 'destroy'])->name('buildings.tenants.destroy');
+        // Registers resource routes for 'tenants' using the AdminTenant controller, limited to index, create, store, edit, update, show, and destroy actions.
+        Route::resource('tenants', AdminTenant::class)
+        ->only(['index', 'create', 'store', 'edit', 'update', 'show', 'destroy']);
 
-        Route::resource('buildings', AdminBuilding::class); // index, create, store, show, edit, update, destroy
+        // Tenants management for a specific building (admin scope)
+        Route::resource('buildings.tenants', AdminBuildingTenant::class)
+        ->only(['index', 'create', 'store', 'destroy']);
+
+        // Buildings management (admin scope)
+        Route::resource('buildings', AdminBuilding::class);
 
     });
-
 
 Route::middleware(['auth','can:owner'])
     ->prefix('owner')->name('owner.')
@@ -70,41 +61,41 @@ Route::middleware(['auth','can:owner'])
 
         // flats by building
         Route::resource('buildings.flats', FlatController::class)
-            ->only(['index', 'create', 'store']);
+        ->only(['index', 'create', 'store']);
 
         // optional edit/update/delete (still scope by owner)
         Route::resource('flats', FlatController::class)
-            ->only(['edit', 'update', 'destroy']);
+        ->only(['edit', 'update', 'destroy']);
 
         // Bill categories management (CRUD except show)
         Route::resource('categories', BillCategoryController::class)->except(['show']);
 
         // Tenant-wise flat assignments inside a building
         Route::resource('buildings.tenants.occupancies', TenantOccupancyController::class)
-            ->only(['index', 'create', 'store', 'edit', 'update']);
+        ->only(['index', 'create', 'store', 'edit', 'update']);
 
         // End (set end_date = today or chosen date)
         Route::put('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}/end', [TenantOccupancyController::class,'end'])
-            ->name('buildings.tenants.occupancies.end');
+        ->name('buildings.tenants.occupancies.end');
 
         // Delete an incorrect record (rare, for mistakes)
         Route::delete('buildings/{building}/tenants/{tenant}/occupancies/{pivotId}', [TenantOccupancyController::class,'destroy'])
-            ->name('buildings.tenants.occupancies.destroy');
+        ->name('buildings.tenants.occupancies.destroy');
 
         // Bill CRUD routes for owners (except 'show')
         Route::resource('bills', BillController::class)
-            ->only(['index','create','store','edit','update','destroy']);
+        ->only(['index','create','store','edit','update','destroy']);
 
         // Show payments for a specific bill
         Route::get('bills/{bill}/payments', [BillController::class, 'payments'])->name('bills.payments');
 
         // Payments: allow create, store, and destroy only
         Route::resource('payments', PaymentController::class)
-            ->only(['create', 'store', 'destroy']);
+        ->only(['create', 'store', 'destroy']);
 
         // Adjustments: allow create and store only
         Route::resource('adjustments', AdjustmentController::class)
-            ->only(['create', 'store']);
+        ->only(['create', 'store']);
 });
 
 require __DIR__.'/auth.php';
