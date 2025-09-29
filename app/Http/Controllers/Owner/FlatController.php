@@ -19,7 +19,7 @@ class FlatController extends Controller
     }
 
     // List flats for a given building
-    public function indexByBuilding(Building $building)
+    public function index(Building $building)
     {
         $flats = $this->flatService->getFlatsByBuilding($building);
         $stats = $this->flatService->getBuildingFlatStats($building);
@@ -28,13 +28,13 @@ class FlatController extends Controller
     }
 
     // Show create form pre-linked to building
-    public function createForBuilding(Building $building)
+    public function create(Building $building)
     {
         return view('owner.flats.create', compact('building'));
     }
 
     // Store flat under this building
-    public function storeForBuilding(StoreFlatRequest $request, Building $building)
+    public function store(StoreFlatRequest $request, Building $building)
     {
         $data = $request->validated();
 

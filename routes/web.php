@@ -61,18 +61,20 @@ Route::middleware(['auth','can:admin'])
 Route::middleware(['auth','can:owner'])
     ->prefix('owner')->name('owner.')
     ->group(function () {
+
+        // List buildings for the owner
         Route::get('buildings', [OwnerBuilding::class,'index'])->name('buildings.index');
+
+        // List tenants for a specific building (owner scope)
         Route::get('buildings/{building}/tenants', [OwnerBuildingTenant::class, 'index'])->name('buildings.tenants.index');
 
         // flats by building
-        Route::get('buildings/{building}/flats', [FlatController::class,'indexByBuilding'])->name('buildings.flats.index');
-        Route::get('buildings/{building}/flats/create', [FlatController::class,'createForBuilding'])->name('buildings.flats.create');
-        Route::post('buildings/{building}/flats', [FlatController::class,'storeForBuilding'])->name('buildings.flats.store');
+        Route::resource('buildings.flats', FlatController::class)
+            ->only(['index', 'create', 'store']);
 
         // optional edit/update/delete (still scope by owner)
-        Route::get('flats/{flat}/edit', [FlatController::class,'edit'])->name('flats.edit');
-        Route::put('flats/{flat}', [FlatController::class,'update'])->name('flats.update');
-        Route::delete('flats/{flat}', [FlatController::class,'destroy'])->name('flats.destroy');
+        Route::resource('flats', FlatController::class)
+            ->only(['edit', 'update', 'destroy']);
 
         // Bill categories management (CRUD except show)
         Route::resource('categories', BillCategoryController::class)->except(['show']);
@@ -100,8 +102,9 @@ Route::middleware(['auth','can:owner'])
         Route::resource('payments', PaymentController::class)
             ->only(['create', 'store', 'destroy']);
 
-        Route::get('adjustments/create', [AdjustmentController::class,'create'])->name('adjustments.create');
-        Route::post('adjustments',       [AdjustmentController::class,'store'])->name('adjustments.store');
+        // Adjustments: allow create and store only
+        Route::resource('adjustments', AdjustmentController::class)
+            ->only(['create', 'store']);
 });
 
 require __DIR__.'/auth.php';
