@@ -5,27 +5,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\Admin\OwnerService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Hash;
 
 class OwnerController extends Controller
 {
+    public function __construct(private OwnerService $ownerService) {}
+
     public function index(Request $request)
     {
-        $q = trim($request->get('q', ''));
-        $owners = User::query()
-            ->where('role', 'owner')
-            ->when($q, fn($qry) => $qry->where(function($s) use ($q){
-                $s->where('name','like',"%$q%")
-                  ->orWhere('email','like',"%$q%")
-                  ->orWhere('slug','like',"%$q%");
-            }))
-            ->latest()
-            ->paginate(12)
-            ->withQueryString();
+        $filters = [
+            'search' => trim($request->get('q', '')),
+        ];
 
-        return view('admin.owners.index', compact('owners','q'));
+        $owners = $this->ownerService->getOwnersWithFilters($filters);
+
+        return view('admin.owners.index', [
+            'owners' => $owners,
+            'search' => $filters['search'],
+        ]);
     }
 
     public function create()
@@ -35,23 +33,17 @@ class OwnerController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name'  => ['required','string','max:100'],
-            'email' => ['required','email','max:150','unique:users,email'],
-            'slug'  => ['nullable','alpha_dash','max:80','unique:users,slug'],
-            'password' => ['nullable','string','min:6'], // optional; default if empty
-        ]);
+        $rules = $this->ownerService->validateOwnerData($request->all());
+        $data = $request->validate($rules);
 
-        $owner = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'slug'     => $data['slug'] ?? null,
-            'role'     => 'owner',
-            'password' => Hash::make($data['password'] ?? 'password'),
-        ]);
-
-        return redirect()->route('admin.owners.index')
-            ->with('ok', "Owner '{$owner->name}' created");
+        try {
+            $owner = $this->ownerService->createOwner($data);
+            return redirect()->route('admin.owners.index')
+                ->with('ok', 'Owner created successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to create owner: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function edit(User $owner)
@@ -64,27 +56,35 @@ class OwnerController extends Controller
     {
         abort_unless($owner->role === 'owner', 404);
 
-        $data = $request->validate([
-            'name'  => ['required','string','max:100'],
-            'email' => ['required','email','max:150', Rule::unique('users','email')->ignore($owner->id)],
-            'slug'  => ['nullable','alpha_dash','max:80', Rule::unique('users','slug')->ignore($owner->id)],
-            'password' => ['nullable','string','min:6'],
-        ]);
+        $rules = $this->ownerService->validateOwnerData($request->all(), $owner->id);
+        $data = $request->validate($rules);
 
-        $owner->update([
-            'name'  => $data['name'],
-            'email' => $data['email'],
-            'slug'  => $data['slug'] ?? null,
-            'password' => isset($data['password']) ? Hash::make($data['password']) : $owner->password,
-        ]);
-
-        return redirect()->route('admin.owners.index')->with('ok', 'Owner updated');
+        try {
+            $this->ownerService->updateOwner($owner, $data);
+            return redirect()->route('admin.owners.index')
+                ->with('ok', 'Owner updated successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update owner: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function destroy(User $owner)
     {
         abort_unless($owner->role === 'owner', 404);
-        $owner->delete();
-        return redirect()->route('admin.owners.index')->with('ok', 'Owner deleted');
+
+        try {
+            $canDelete = $this->ownerService->canDeleteOwner($owner);
+
+            if (!$canDelete['can_delete']) {
+                return back()->with('error', 'Cannot delete owner: ' . implode(', ', $canDelete['reasons']));
+            }
+
+            $this->ownerService->deleteOwner($owner);
+            return redirect()->route('admin.owners.index')
+                ->with('ok', 'Owner deleted successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete owner: ' . $e->getMessage());
+        }
     }
 }

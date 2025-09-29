@@ -108,16 +108,28 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4">
-                                <span
-                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {{ $building->flats_count ?? 0 }} flats
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ $building->flats_count ?? 0 }} flats
+                                    </span>
+                                </div>
                             </td>
                             <td class="px-6 py-4">
-                                <span
-                                    class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                    {{ $building->tenants_count ?? 0 }} tenants
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        {{ $building->tenants_count ?? 0 }} tenants
+                                    </span>
+                                    <a href="{{ route('admin.buildings.tenants.create', $building) }}"
+                                        class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition"
+                                        title="Add Tenant">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                    </a>
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-500">
                                 {{ $building->created_at->format('M d, Y') }}
@@ -182,22 +194,4 @@
         </div>
     @endif
 
-    <!-- Summary -->
-    @if ($buildings->count() > 0)
-        <div class="mt-6 bg-gray-50 rounded-lg p-4">
-            <div class="flex items-center justify-between text-sm text-gray-600">
-                <div>
-                    Showing {{ $buildings->firstItem() }} to {{ $buildings->lastItem() }}
-                    of {{ $buildings->total() }} buildings
-                    @if ($search ?? '')
-                        matching "{{ $search }}"
-                    @endif
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span>Total Flats: {{ $buildings->sum('flats_count') }}</span>
-                    <span>Total Tenants: {{ $buildings->sum('tenants_count') }}</span>
-                </div>
-            </div>
-        </div>
-    @endif
 @endsection

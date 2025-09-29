@@ -4,9 +4,23 @@
 @section('content')
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold">Bills</h1>
-        <a href="{{ route('owner.bills.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            Create Bill
-        </a>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('owner.payments.create') }}"
+                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+                Add Payment
+            </a>
+            <a href="{{ route('owner.bills.create') }}"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Create Bill
+            </a>
+        </div>
     </div>
 
     @if (session('ok'))
@@ -103,7 +117,19 @@
                             {{ $bill->tenant->name ?? 'No tenant' }}
                         </td>
                         <td class="px-6 py-4 text-sm">
-                            ${{ number_format($bill->amount, 2) }}
+                            <div class="flex items-center gap-2">
+                                <span>${{ number_format($bill->amount, 2) }}</span>
+                                @if ($bill->status !== 'paid')
+                                    <a href="{{ route('owner.payments.create', ['bill_id' => $bill->id]) }}"
+                                        class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition"
+                                        title="Add Payment">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
                             @if ($bill->due_carry_forward > 0)
                                 <div class="text-xs text-gray-500">
                                     + ${{ number_format($bill->due_carry_forward, 2) }} carry
@@ -133,7 +159,7 @@
                                 <a href="{{ route('owner.bills.edit', $bill) }}"
                                     class="text-blue-600 hover:text-blue-900">Edit</a>
 
-                                @if($bill->payments()->exists())
+                                @if ($bill->payments()->exists())
                                     <a href="{{ route('owner.bills.payments', $bill) }}"
                                         class="text-green-600 hover:text-green-900">Payments</a>
                                 @endif

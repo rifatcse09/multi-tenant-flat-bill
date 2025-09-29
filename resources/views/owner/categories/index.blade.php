@@ -1,48 +1,69 @@
 @extends('layouts.app')
-@section('title','Bill Categories')
+@section('title', 'Bill Categories')
 
 @section('content')
-<div class="flex items-center justify-between">
-  <h1 class="text-2xl font-semibold">Bill Categories</h1>
-  <a href="{{ route('owner.categories.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded">New Category</a>
-</div>
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold">Bill Categories</h1>
+            <p class="text-gray-600 mt-1">Manage your billing categories</p>
+        </div>
+        <a href="{{ route('owner.categories.create') }}"
+           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Add Category
+        </a>
+    </div>
 
-<form method="GET" class="mt-4">
-  <div class="flex gap-2">
-    <input name="q" value="{{ $q }}" placeholder="Search name…" class="border p-2 rounded w-full">
-    <button class="px-4 py-2 border rounded">Search</button>
-  </div>
-</form>
+    <!-- Categories Table -->
+    <div class="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div class="bg-gray-50 px-6 py-4 border-b">
+            <h2 class="text-lg font-semibold text-gray-900">Your Categories</h2>
+        </div>
 
-@if(session('ok')) <div class="mt-4 bg-green-100 p-3 rounded">{{ session('ok') }}</div> @endif
-
-<div class="mt-6 bg-white rounded-lg shadow-sm border overflow-hidden">
-  <table class="w-full text-left">
-    <thead class="bg-gray-50 text-gray-600 text-sm">
-      <tr>
-        <th class="p-3">Name</th>
-        <th class="p-3 w-40">Actions</th>
-      </tr>
-    </thead>
-    <tbody class="divide-y">
-      @forelse($categories as $c)
-      <tr>
-        <td class="p-3">{{ $c->name }}</td>
-        <td class="p-3">
-          <a href="{{ route('owner.categories.edit',$c) }}" class="text-blue-700 mr-3">Edit</a>
-          <form method="POST" action="{{ route('owner.categories.destroy',$c) }}" class="inline"
-                onsubmit="return confirm('Delete this category?');">
-            @csrf @method('DELETE')
-            <button class="text-red-600">Delete</button>
-          </form>
-        </td>
-      </tr>
-      @empty
-      <tr><td class="p-3 text-gray-500" colspan="2">No categories yet.</td></tr>
-      @endforelse
-    </tbody>
-  </table>
-</div>
-
-<div class="mt-4">{{ $categories->links() }}</div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse($categories as $category)
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">{{ $category->name }}</div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ $category->created_at->format('M d, Y') }}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center space-x-3">
+                                    <a href="{{ route('owner.categories.edit', $category) }}"
+                                       class="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</a>
+                                    <form method="POST" action="{{ route('owner.categories.destroy', $category) }}" class="inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit"
+                                                class="text-red-600 hover:text-red-900 text-sm font-medium"
+                                                onclick="return confirm('Delete {{ $category->name }}? This will affect related bills.')">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td class="px-6 py-12 text-center text-gray-500" colspan="4">
+                                No categories found. <a href="{{ route('owner.categories.create') }}" class="text-blue-600 hover:underline">Create first category</a>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
 @endsection

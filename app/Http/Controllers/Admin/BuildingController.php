@@ -37,7 +37,7 @@ class BuildingController extends Controller
         $data = $request->validate($rules);
 
         try {
-            $building = $this->buildingService->createBuilding($data);
+            $this->buildingService->createBuilding($data);
             return redirect()->route('admin.buildings.index')
                 ->with('ok', 'Building created successfully');
         } catch (\Exception $e) {

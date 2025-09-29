@@ -3,7 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\User;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -11,21 +11,23 @@ use Illuminate\Support\Facades\DB;
 class OwnerService
 {
     /**
-     * Get paginated owners with search functionality.
+     * Get owners with filters and pagination.
      */
-    public function paginateOwners(string $search = '', int $perPage = 15): LengthAwarePaginator
+    public function getOwnersWithFilters(array $filters = []): LengthAwarePaginator
     {
-        $query = User::where('role', 'owner');
+        $search = $filters['search'] ?? '';
 
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('slug', 'like', "%{$search}%");
-            });
-        }
-
-        return $query->latest()->paginate($perPage);
+        return User::where('role', 'owner')
+            ->withCount('buildings')
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%");
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
     }
 
     /**
@@ -36,28 +38,27 @@ class OwnerService
         return User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'slug' => $data['slug'] ?? null,
+            'password' => Hash::make($data['password']),
             'role' => 'owner',
-            'password' => Hash::make($data['password'] ?? 'password'),
         ]);
     }
 
     /**
      * Update an existing owner.
      */
-    public function updateOwner(User $owner, array $data): bool
+    public function updateOwner(User $owner, array $data): User
     {
         $updateData = [
             'name' => $data['name'],
             'email' => $data['email'],
-            'slug' => $data['slug'] ?? null,
         ];
 
-        if (isset($data['password']) && !empty($data['password'])) {
+        if (!empty($data['password'])) {
             $updateData['password'] = Hash::make($data['password']);
         }
 
-        return $owner->update($updateData);
+        $owner->update($updateData);
+        return $owner;
     }
 
     /**
@@ -65,98 +66,79 @@ class OwnerService
      */
     public function deleteOwner(User $owner): bool
     {
-        // Check if owner has buildings
-        if ($owner->buildings()->exists()) {
-            throw new \Exception('Cannot delete owner with existing buildings.');
+        return $owner->delete();
+    }
+
+    /**
+     * Check if owner can be deleted.
+     */
+    public function canDeleteOwner(User $owner): array
+    {
+        $buildingsCount = $owner->buildings()->count();
+
+        $canDelete = $buildingsCount === 0;
+        $reasons = [];
+
+        if ($buildingsCount > 0) {
+            $reasons[] = "Owner has {$buildingsCount} building(s)";
         }
 
-        return $owner->delete();
+        return [
+            'can_delete' => $canDelete,
+            'reasons' => $reasons,
+        ];
+    }
+
+    /**
+     * Validate owner data.
+     */
+    public function validateOwnerData(array $data, ?int $ownerId = null): array
+    {
+        $rules = [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255'],
+            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
+        ];
+
+        // For updates, make password optional and add unique email validation
+        if ($ownerId) {
+            $rules['email'][] = 'unique:users,email,' . $ownerId;
+            $rules['password'] = ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()];
+        } else {
+            $rules['email'][] = 'unique:users';
+        }
+
+        return $rules;
     }
 
     /**
      * Get owner statistics.
      */
-    public function getOwnerStats(User $owner): array
-    {
-        $totalBuildings = $owner->buildings()->count();
-
-        $totalFlats = DB::table('flats')
-            ->join('buildings', 'buildings.id', '=', 'flats.building_id')
-            ->where('buildings.owner_id', $owner->id)
-            ->count();
-
-        $occupiedFlats = DB::table('flat_tenant as ft')
-            ->join('flats as f', 'f.id', '=', 'ft.flat_id')
-            ->join('buildings as b', 'b.id', '=', 'f.building_id')
-            ->where('b.owner_id', $owner->id)
-            ->whereNull('ft.end_date')
-            ->distinct('f.id')
-            ->count('f.id');
-
-        $approvedTenants = DB::table('building_tenant as bt')
-            ->join('buildings as b', 'b.id', '=', 'bt.building_id')
-            ->where('b.owner_id', $owner->id)
-            ->count();
-
-        return [
-            'total_buildings' => $totalBuildings,
-            'total_flats' => $totalFlats,
-            'occupied_flats' => $occupiedFlats,
-            'vacant_flats' => $totalFlats - $occupiedFlats,
-            'approved_tenants' => $approvedTenants,
-            'occupancy_rate' => $totalFlats > 0 ? round(($occupiedFlats / $totalFlats) * 100, 1) : 0,
-        ];
-    }
-
-    /**
-     * Get admin dashboard owner statistics.
-     */
-    public function getAdminOwnerStats(): array
+    public function getOwnerStats(): array
     {
         $totalOwners = User::where('role', 'owner')->count();
         $ownersWithBuildings = User::where('role', 'owner')
             ->whereHas('buildings')
             ->count();
-
-        $activeOwners = User::where('role', 'owner')
-            ->whereHas('buildings.flats.tenants', function ($query) {
-                $query->whereNull('flat_tenant.end_date');
-            })
-            ->distinct()
-            ->count();
+        $totalBuildings = \App\Models\Building::withoutGlobalScopes()->count();
 
         return [
             'total_owners' => $totalOwners,
             'owners_with_buildings' => $ownersWithBuildings,
             'owners_without_buildings' => $totalOwners - $ownersWithBuildings,
-            'active_owners' => $activeOwners,
-            'activity_rate' => $totalOwners > 0 ? round(($activeOwners / $totalOwners) * 100, 1) : 0,
+            'total_buildings' => $totalBuildings,
         ];
     }
 
     /**
-     * Search owners.
+     * Get recent owners.
      */
-    public function searchOwners(string $query): Collection
+    public function getRecentOwners(int $limit = 5): Collection
     {
         return User::where('role', 'owner')
-            ->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('email', 'like', "%{$query}%")
-                  ->orWhere('slug', 'like', "%{$query}%");
-            })
-            ->orderBy('name')
-            ->get();
-    }
-
-    /**
-     * Get owners with building counts.
-     */
-    public function getOwnersWithBuildingCounts(): Collection
-    {
-        return User::where('role', 'owner')
-            ->withCount(['buildings'])
-            ->orderBy('name')
-            ->get();
+            ->withCount('buildings')
+            ->latest()
+            ->limit($limit)
+            ->get(['id', 'name', 'email', 'created_at']);
     }
 }
