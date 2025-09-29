@@ -178,7 +178,6 @@ class UpdateBillRequest extends FormRequest
             $validated['month'] = Carbon::parse($validated['month'])->startOfMonth()->toDateString();
         }
 
-
-
-
-}    }        return $validated;
+        return $validated;
+    }
+}

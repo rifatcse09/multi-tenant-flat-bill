@@ -27,6 +27,7 @@
     @can('admin')
       <a href="/admin/owners" class="px-4 py-3 rounded border hover:bg-gray-50">Manage Owners</a>
       <a href="/admin/tenants" class="px-4 py-3 rounded border hover:bg-gray-50">Manage Tenants</a>
+        <a href="/admin/buildings" class="px-4 py-3 rounded border hover:bg-gray-50">Manage Building</a>
     @endcan
     @can('owner')
       <a href="/owner/buildings" class="px-4 py-3 rounded border hover:bg-gray-50">Manage Buildings</a>
