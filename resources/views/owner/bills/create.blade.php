@@ -113,7 +113,6 @@
                         Bill Amount <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">$</span>
                         <input type="number" name="amount" id="amount" step="0.01" min="0.01" required
                             value="{{ old('amount') }}"
                             class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
