@@ -46,6 +46,7 @@ Route::middleware(['auth','can:admin'])
         Route::get('/tenants/{tenant}/edit', [AdminTenant::class, 'edit'])->name('tenants.edit');
         Route::put('/tenants/{tenant}',       [AdminTenant::class, 'update'])->name('tenants.update');
         Route::delete('/tenants/{tenant}',    [AdminTenant::class, 'destroy'])->name('tenants.destroy');
+        Route::get('/tenants/{tenant}', [AdminTenant::class, 'show'])->name('tenants.show');
 
         Route::get('buildings/{building}/tenants',          [AdminBuildingTenant::class, 'index'])->name('buildings.tenants.index');
         Route::get('buildings/{building}/tenants/create',   [AdminBuildingTenant::class, 'create'])->name('buildings.tenants.create');
@@ -118,6 +119,7 @@ Route::middleware(['auth','can:owner'])
         Route::get('adjustments/create', [AdjustmentController::class,'create'])->name('adjustments.create');
         Route::post('adjustments',       [AdjustmentController::class,'store'])->name('adjustments.store');
 });
+
 
 
 

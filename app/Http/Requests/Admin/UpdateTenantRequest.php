@@ -24,7 +24,12 @@ class UpdateTenantRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['nullable', 'email', 'max:150', Rule::unique('tenants', 'email')->ignore($tenant->id)],
+            'email' => [
+                'nullable',
+                'email',
+                'max:150',
+                Rule::unique('tenants', 'email')->ignore($tenant->id)
+            ],
             'phone' => ['nullable', 'string', 'max:30'],
         ];
     }
@@ -41,6 +46,18 @@ class UpdateTenantRequest extends FormRequest
             'email.unique' => 'This email is already registered.',
             'email.max' => 'Email cannot exceed 150 characters.',
             'phone.max' => 'Phone number cannot exceed 30 characters.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'tenant name',
+            'email' => 'email address',
+            'phone' => 'phone number',
         ];
     }
 }

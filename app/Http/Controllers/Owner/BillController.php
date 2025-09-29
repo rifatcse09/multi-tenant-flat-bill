@@ -127,7 +127,7 @@ class BillController extends Controller
         abort_unless($bill->owner_id === auth()->id(), 403);
 
         $payments = $bill->payments()
-            ->orderBy('created_at', 'desc')
+            ->orderBy('paid_at', 'desc')
             ->get();
 
         $totalPaid = $payments->sum('amount');

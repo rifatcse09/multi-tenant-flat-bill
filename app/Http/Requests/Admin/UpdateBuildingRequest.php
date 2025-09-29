@@ -43,18 +43,6 @@ class UpdateBuildingRequest extends FormRequest
     }
 
     /**
-     * Get custom attributes for validator errors.
-     */
-    public function attributes(): array
-    {
-        return [
-            'owner_id' => 'owner',
-            'name' => 'building name',
-            'address' => 'address',
-        ];
-    }
-
-    /**
      * Configure the validator instance.
      */
     public function withValidator($validator): void

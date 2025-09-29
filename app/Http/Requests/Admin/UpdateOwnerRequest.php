@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 
 class UpdateOwnerRequest extends FormRequest
@@ -12,10 +13,7 @@ class UpdateOwnerRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $owner = $this->route('owner');
-        return auth()->check() &&
-               auth()->user()->role === 'admin' &&
-               $owner->role === 'owner';
+        return auth()->check() && auth()->user()->role === 'admin';
     }
 
     /**
@@ -27,7 +25,13 @@ class UpdateOwnerRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $owner->id],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($owner->id)
+            ],
             'password' => ['nullable', Rules\Password::defaults()],
         ];
     }
@@ -67,11 +71,10 @@ class UpdateOwnerRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            // Ensure we're updating an owner role user
             $owner = $this->route('owner');
-
-            // Additional validation: ensure we're updating an owner
-            if ($owner->role !== 'owner') {
-                $validator->errors()->add('owner', 'Invalid owner record.');
+            if ($owner && $owner->role !== 'owner') {
+                $validator->errors()->add('role', 'This user is not an owner.');
             }
         });
     }

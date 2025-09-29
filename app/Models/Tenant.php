@@ -4,9 +4,13 @@ namespace App\Models;
 
 use App\Models\Building;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tenant extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = ['name','email','phone'];
 
     public function buildings()
@@ -22,9 +26,11 @@ class Tenant extends Model
                     ->withTimestamps()
                     ->withPivot(['start_date','end_date']);
     }
-    
-    public function bills()
+
+    public function bills(): HasMany
     {
         return $this->hasMany(Bill::class);
     }
+
+    // Removed payments() relationship - no longer needed
 }

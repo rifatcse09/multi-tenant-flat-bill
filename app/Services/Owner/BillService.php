@@ -173,4 +173,37 @@ class BillService
             'unassigned_count' => $allFlats->count() - $assignedFlats->count(),
         ];
     }
-}
+
+    /**
+     * Get bill statistics for dashboard.
+     */
+    public function getBillStats(int $ownerId): array
+    {
+        $currentMonth = Carbon::now()->startOfMonth()->toDateString();
+
+        $totalBills = Bill::where('owner_id', $ownerId)->count();
+        $currentMonthBills = Bill::where('owner_id', $ownerId)
+            ->where('month', $currentMonth)
+            ->count();
+
+        $unpaidAmount = Bill::where('owner_id', $ownerId)
+            ->where('status', '!=', 'paid')
+            ->sum('amount');
+
+        $thisMonthCollection = Bill::where('owner_id', $ownerId)
+            ->where('month', $currentMonth)
+            ->whereHas('payments', function ($query) use ($currentMonth) {
+                $query->whereMonth('paid_at', Carbon::parse($currentMonth)->month)
+                      ->whereYear('paid_at', Carbon::parse($currentMonth)->year);
+            })
+            ->sum('amount');
+
+        return [
+            'total_bills' => $totalBills,
+
+
+
+
+
+
+}    }        ];            'this_month_collection' => $thisMonthCollection,            'unpaid_amount' => $unpaidAmount,            'current_month_bills' => $currentMonthBills,

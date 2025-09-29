@@ -76,26 +76,19 @@ class TenantService
     }
 
     /**
-     * Get tenant statistics.
+     * Get tenant statistics (simplified version).
      */
-    public function getTenantStats(Tenant $tenant): array
+    public function getTenantStats(): array
     {
-        $totalBuildings = $tenant->buildings()->count();
-
-        $activeOccupancies = DB::table('flat_tenant as ft')
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('end_date')
-            ->count();
-
-        $totalOccupancies = DB::table('flat_tenant')
-            ->where('tenant_id', $tenant->id)
-            ->count();
+        $totalTenants = Tenant::count();
+        $activeTenants = Tenant::whereHas('flats', function ($query) {
+            $query->whereNull('flat_tenant.end_date');
+        })->count();
 
         return [
-            'total_buildings' => $totalBuildings,
-            'active_occupancies' => $activeOccupancies,
-            'total_occupancies' => $totalOccupancies,
-            'past_occupancies' => $totalOccupancies - $activeOccupancies,
+            'total_tenants' => $totalTenants,
+            'active_tenants' => $activeTenants,
+            'inactive_tenants' => $totalTenants - $activeTenants,
         ];
     }
 
@@ -160,5 +153,127 @@ class TenantService
         }
 
         return !$query->exists();
+    }
+
+    /**
+     * Get tenants with filters and pagination.
+     */
+    public function getTenantsWithFilters(array $filters = []): LengthAwarePaginator
+    {
+        $search = $filters['search'] ?? '';
+
+        return Tenant::query()
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%")
+                      ->orWhere('phone', 'like', "%$search%");
+                });
+            })
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+    }
+
+
+    /**
+     * Get tenant with detailed information.
+     */
+    public function getTenantWithDetails(int $tenantId): Tenant
+    {
+        return Tenant::with([
+            'flats' => function ($query) {
+                $query->withPivot(['start_date', 'end_date'])
+                      ->with('building:id,name');
+            }
+        ])
+        ->findOrFail($tenantId);
+    }
+
+    /**
+     * Search tenants for assignment.
+     */
+    public function searchTenantsForAssignment(string $search = '', int $limit = 20): Collection
+    {
+        return Tenant::when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%$search%")
+                      ->orWhere('email', 'like', "%$search%")
+                      ->orWhere('phone', 'like', "%$search%");
+                });
+            })
+            ->orderBy('name')
+            ->limit($limit)
+            ->get(['id', 'name', 'email', 'phone']);
+    }
+
+    /**
+     * Get tenant assignment history.
+     */
+    public function getTenantAssignmentHistory(int $tenantId): Collection
+    {
+        $tenant = Tenant::findOrFail($tenantId);
+
+        return $tenant->flats()
+            ->withPivot(['start_date', 'end_date'])
+            ->with('building:id,name')
+            ->orderBy('flat_tenant.start_date', 'desc')
+            ->get();
+    }
+
+    /**
+     * Export tenants data.
+     */
+    public function exportTenants(array $filters = []): Collection
+    {
+        return Tenant::when(!empty($filters['search']), function ($query) use ($filters) {
+                $query->where(function ($q) use ($filters) {
+                    $q->where('name', 'like', "%{$filters['search']}%")
+                      ->orWhere('email', 'like', "%{$filters['search']}%")
+                      ->orWhere('phone', 'like', "%{$filters['search']}%");
+                });
+            })
+            ->orderBy('name')
+            ->get();
+    }
+
+    /**
+     * Check if tenant can be deleted.
+     */
+    public function canDeleteTenant(Tenant $tenant): array
+    {
+        // Check if tenant has any active assignments
+        $activeAssignments = $tenant->flats()
+            ->whereNull('flat_tenant.end_date')
+            ->count();
+
+        // Check if tenant has any bills
+        $billsCount = $tenant->bills()->count();
+
+        // Check if tenant has any payments through bills
+        $paymentsCount = $tenant->payments()->count();
+
+        $canDelete = true;
+        $reasons = [];
+
+        if ($activeAssignments > 0) {
+            $canDelete = false;
+            $reasons[] = "Tenant has {$activeAssignments} active flat assignment(s)";
+        }
+
+        if ($billsCount > 0) {
+            $canDelete = false;
+            $reasons[] = "Tenant has {$billsCount} bill(s)";
+        }
+
+        if ($paymentsCount > 0) {
+            $canDelete = false;
+            $reasons[] = "Tenant has {$paymentsCount} payment(s)";
+        }
+
+        return [
+            'can_delete' => $canDelete,
+            'reasons' => $reasons,
+        ];
     }
 }
