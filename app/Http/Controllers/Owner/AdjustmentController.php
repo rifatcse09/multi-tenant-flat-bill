@@ -28,17 +28,17 @@ class AdjustmentController extends Controller
     return view('owner/adjustments/create', compact('bill','bills'));
   }
 
-  public function store(StoreAdjustmentRequest $request)
-  {
-    $d = $request->validated();
+public function store(StoreAdjustmentRequest $request)
+{
+    $data = $request->validated();
     $this->service->addDue(
-      ownerId: auth()->id(),
-      billId: (int)$d['bill_id'],
-      amount: (float)$d['amount'],
-      reason: $d['reason'] ?? null,
-      type: $d['type'] ?? 'manual_due'
+        ownerId: auth()->id(),
+        billId: (int)$data['bill_id'],
+        amount: (float)$data['amount'],
+        reason: $data['reason'] ?? null,
+        type: $data['type'] ?? 'manual_due'
     );
 
     return redirect()->route('owner.bills.index')->with('ok','Adjustment added.');
-  }
+}
 }
