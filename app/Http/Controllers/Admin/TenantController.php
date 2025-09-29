@@ -113,48 +113,4 @@ class TenantController extends Controller
         return response()->json($tenants);
     }
 
-    /**
-     * Export tenants to CSV.
-     */
-    public function export(Request $request)
-    {
-        $filters = [
-            'search' => $request->get('search'),
-        ];
-
-        $tenants = $this->tenantService->exportTenants($filters);
-
-        $filename = 'tenants-' . date('Y-m-d') . '.csv';
-
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
-
-        $callback = function() use ($tenants) {
-            $file = fopen('php://output', 'w');
-
-            // Header row - removed payment columns
-            fputcsv($file, [
-                'ID', 'Name', 'Email', 'Phone', 'Bills Count',
-                'Created', 'Updated'
-            ]);
-
-            foreach ($tenants as $tenant) {
-                fputcsv($file, [
-                    $tenant->id,
-                    $tenant->name,
-                    $tenant->email ?? 'N/A',
-                    $tenant->phone ?? 'N/A',
-                    $tenant->bills_count ?? 0,
-                    $tenant->created_at->format('Y-m-d H:i:s'),
-                    $tenant->updated_at->format('Y-m-d H:i:s'),
-                ]);
-            }
-
-            fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
-    }
 }

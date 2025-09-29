@@ -1,61 +1,178 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Multi-Tenant Flat & Bill Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A Laravel 12 application for **building/flat management** with **multi-tenant billing**.  
+Supports **Super Admin → House Owners → Tenants** roles, flat assignments, bill generation, payments, and due/adjustment tracking.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Features
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Super Admin**
+  - Manage House Owners
+  - Manage Buildings
+  - Manage Tenants
+  - Assign Tenants to Buildings
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **House Owner**
+  - Manage Buildings & Flats
+  - Assign Tenants Flats
+  - Manage Bill Categories (Electricity, Gas, Water, etc.)
+  - Generate Flat-wise Bills (per Category, per Month)
+  - Track Dues & Carry Forward
+  - Add **Manual Adjustments** (late fees, discounts, waivers)
+  - Record **Payments**
+  - Email notifications for Bill Created / Bill Paid
 
-## Learning Laravel
+- **Tenant**
+  - (Future scope) login and view bills/payments
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Setup Instructions
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 1. Clone & Install
+```bash
+git clone https://github.com/rifatcse09/multi-tenant-flat-bill
+cd multi-tenant-flat-bill
+composer install
+npm install && npm run dev
+```
 
-## Laravel Sponsors
+### 2. Environment
+```bash
+cp .env.example .env
+php artisan key:generate
+```
+Update `.env` for DB, mail, and subdomain if needed.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 3. Database
+```bash
+php artisan migrate --seed
+```
+Seeds include:
+- Super Admin user
+- Sample House Owner & Tenant
 
-### Premium Partners
+### 4. Run locally
+```bash
+php artisan serve
+```
+- Open: http://localhost:8000
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 5. Subdomain (if enabled)
+This project supports **subdomain-based tenant isolation** (optional).  
+- Set `SESSION_DOMAIN=.local.test` in `.env`
+- Add `/etc/hosts` entries like:
+  ```
+  127.0.0.1 admin.local.test
+  127.0.0.1 owner1.local.test
+  ```
+- Access via http://admin.local.test:8000
 
-## Contributing
+> For the assessment, **column-based tenant scoping** (`owner_id` on models) is used by default. Subdomain routing is optional.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Multi-Tenant Implementation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Column-based tenant isolation**  
+  Every resource (`buildings`, `flats`, `bill_categories`, `bills`) has an `owner_id`.  
+  Global scopes (`OwnerScope`) ensure owners only see their own data.
 
-## Security Vulnerabilities
+- **Super Admin** is scoped separately and can manage all house owners/buildings/tenants.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Pivot tables** (`building_tenant`, `flat_tenant`) manage assignments:
+  - Admin approves tenants for buildings.
+  - Owners assign tenants to specific flats with start/end dates (no overlaps).
 
-## License
+- **Carry Forward vs Adjustments**
+  - Carry Forward: auto-applied when generating new bills if previous bills unpaid.
+  - Adjustments: manual interventions (late fees, discounts, corrections).
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## Optimization & Query Notes
+
+- **Eager Loading** (`with()`) used to avoid N+1 queries (e.g., bills with flat, category, tenant).
+- **Database Indexes**:
+  - Unique `(owner_id, flat_id, bill_category_id, month)` on `bills` to prevent duplicate bills.
+  - Indexes on `flat_id, tenant_id` in pivot tables for fast joins.
+- **Accessors** on `Bill` model (`gross`, `paid`, `due`) centralize financial calculations.
+- **Soft Deletes**: Used for major entities (Users, Buildings, Flats, Bills) to preserve audit history.
+- **Services Layer** (`BillService`, `PaymentService`, `AdjustmentService`) keeps controllers thin and reusable.
+- **Validation** via FormRequests ensures tenant assignment doesn’t overlap and prevents overpayments.
+
+---
+
+## Design Decisions
+
+1. **Multi-Tenant Isolation**
+   - Chose **column-based** isolation (via `owner_id`) for simplicity and quick local testing.
+   - Subdomain routing supported but optional.
+
+2. **Ledger-based Billing**
+   - Bills, Payments, and Adjustments are append-only (audit-friendly).
+   - Dues are always recalculated, not overwritten.
+
+3. **Extensible**
+   - Easy to extend with APIs (e.g., expose bills/payments to tenants).
+   - Notifications abstracted, so can swap mail for SMS later.
+
+4. **UI**
+   - Blade + TailwindCSS for lightweight, assessment-friendly frontend.
+
+---
+
+## Development Notes
+
+- Built with **Laravel Breeze (Blade)** auth scaffold.
+- Queue-ready (for sending bill/payment emails asynchronously).
+- Modular service layer for testability.
+- Resource controllers with `only([...])` where partial CRUD is required.
+
+---
+
+## Credentials (for testing)
+
+After seeding:
+- Super Admin: `admin@example.com / password`
+- Owner: `owner1@example.com / password`
+
+---
+
+## Next Steps / Improvements
+
+- Dashobard (Total Building, Flats, Unpaid Bills, Payment This Month)
+- Tenant portal (login & view bills)
+- Export bills/payments (CSV, PDF)
+- Role-based API (for mobile app integration)
+- Real-time notifications (Websockets)
+
+## Screenshots
+
+### Login Page
+![Login Screenshot](docs/screenshots/login.png)
+
+### Super Admin Dashboard
+![Super Admin Dashboard Screenshot](docs/screenshots/super_admin_dashboard.png)
+
+### Owers
+![Super Admin Dashboard Screenshot](docs/screenshots/owers.png)
+
+### Buildings
+![Super Admin Dashboard Screenshot](docs/screenshots/super_admin_buildings.png)
+
+### Tenants House Owners
+![Tenants House Owners](docs/screenshots/super_admin_tenants.png)
+
+### Buildings House Owners
+![Buildings House Owners](docs/screenshots/building_with_tenant.png)
+
+### Bills House Owners
+![Bills House Owners Screenshot](docs/screenshots/bills.png)
+
+### Payment House Owners
+![Payment House Owners Screenshot](docs/screenshots/payments.png)
+
+### Bill Adjustment House Owners
+![Bill Adjustment House Owners Screenshot](docs/screenshots/adjustments.png)
