@@ -78,17 +78,27 @@ class TenantController extends Controller
     public function destroy(Tenant $tenant)
     {
         try {
-            $canDelete = $this->tenantService->canDeleteTenant($tenant);
-
-            if (!$canDelete['can_delete']) {
-                return back()->with('error', 'Cannot delete tenant: ' . implode(', ', $canDelete['reasons']));
+            // Check if tenant has any related records that would prevent deletion
+            if ($tenant->payments()->exists()) {
+                return redirect()->back()->with('error', 'Cannot delete tenant: This tenant has payment records.');
             }
 
-            $this->tenantService->deleteTenant($tenant);
+            if ($tenant->occupancies()->exists()) {
+                return redirect()->back()->with('error', 'Cannot delete tenant: This tenant has occupancy records.');
+            }
+
+            if ($tenant->bills()->exists()) {
+                return redirect()->back()->with('error', 'Cannot delete tenant: This tenant has bill records.');
+            }
+
+            $tenant->delete();
+
             return redirect()->route('admin.tenants.index')
-                ->with('ok', 'Tenant deleted successfully');
+                ->with('success', 'Tenant deleted successfully.');
+
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to delete tenant: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Failed to delete tenant: ' . $e->getMessage());
         }
     }
 

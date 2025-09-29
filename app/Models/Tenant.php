@@ -43,6 +43,14 @@ class Tenant extends Model
     }
 
     /**
+     * Get all payments for this tenant.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'bill_id');
+    }
+
+    /**
      * Route notifications for the tenant.
      * This tells Laravel to use the email field for email notifications.
      */
