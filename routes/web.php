@@ -107,12 +107,19 @@ Route::middleware(['auth','can:owner'])
          Route::resource('bills', BillController::class)
             ->only(['index','create','store']);
 
+        Route::get('bills/{bill}/edit', [BillController::class, 'edit'])->name('bills.edit');
+        Route::put('bills/{bill}', [BillController::class, 'update'])->name('bills.update');
+        Route::delete('bills/{bill}', [BillController::class, 'destroy'])->name('bills.destroy');
+        Route::get('bills/{bill}/payments', [BillController::class, 'payments'])->name('bills.payments');
+
         Route::get('payments/create', [PaymentController::class,'create'])->name('payments.create');
         Route::post('payments',        [PaymentController::class,'store'])->name('payments.store');
 
         Route::get('adjustments/create', [AdjustmentController::class,'create'])->name('adjustments.create');
         Route::post('adjustments',       [AdjustmentController::class,'store'])->name('adjustments.store');
 });
+
+
 
 
 

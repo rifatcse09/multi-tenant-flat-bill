@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers\Owner;
 
-use App\Models\Bill;
-use App\Models\Flat;
-use App\Models\BillCategory;
-use Illuminate\Http\Request;
-use App\Services\Owner\BillService;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Owner\StoreBillRequest;
+use App\Http\Requests\Owner\UpdateBillRequest;
+use App\Services\Owner\BillService;
+use App\Models\Bill;
+use Illuminate\Http\Request;
 
 class BillController extends Controller
 {
-    public function __construct(private BillService $service) {}
+    public function __construct(private BillService $billService) {}
 
-     public function index(Request $request)
+    public function index(Request $request)
     {
         $ownerId = auth()->id();
 
@@ -24,72 +24,116 @@ class BillController extends Controller
             'bill_to'      => $request->get('bill_to'),
             'month_from'   => $request->get('month_from'),
             'month_to'     => $request->get('month_to'),
-            'q'            => trim($request->get('q','')), // tenant name/email
+            'q'            => trim($request->get('q', '')), // tenant name/email
         ];
 
-        $query = Bill::with(['flat:id,flat_number','category:id,name','tenant:id,name,email'])
-            ->where('owner_id', $ownerId)
-            ->when($filters['flat_id'],     fn($q,$v) => $q->where('flat_id', $v))
-            ->when($filters['category_id'], fn($q,$v) => $q->where('bill_category_id', $v))
-            ->when($filters['status'],      fn($q,$v) => $q->where('status', $v))
-            ->when($filters['bill_to'],     fn($q,$v) => $q->where('name,', $v))
-            ->when($filters['month_from'],  fn($q,$v) => $q->whereDate('month', '>=', date('Y-m-01', strtotime($v.'-01'))))
-            ->when($filters['month_to'],    fn($q,$v) => $q->whereDate('month', '<=', date('Y-m-t', strtotime($v.'-01'))))
-            ->when($filters['q'], function ($q, $v) {
-                $q->whereHas('tenant', fn($t) => $t->where('name','like',"%$v%")->orWhere('email','like',"%$v%"));
-            })
-            ->orderByDesc('month')->orderBy('flat_id');
+        $bills = $this->billService->getBillsWithFilters($ownerId, $filters);
+        $totals = $this->billService->calculateBillTotals($ownerId, $filters);
+        $dropdownData = $this->billService->getDropdownData($ownerId);
 
-        // totals for current filter (without pagination)
-        $totals = (clone $query)->get()->reduce(function($carry, $bill) {
-            $paid = $bill->payments()->sum('amount');
-            $due  = max(0, ($bill->amount + $bill->due_carry_forward) - $paid);
-            $carry['amount'] += $bill->amount;
-            $carry['carry']  += $bill->due_carry_forward;
-            $carry['paid']   += $paid;
-            $carry['due']    += $due;
-            return $carry;
-        }, ['amount'=>0,'carry'=>0,'paid'=>0,'due'=>0]);
-
-        $bills = $query->paginate(15)->withQueryString();
-
-        // dropdown data
-        $flats = Flat::where('owner_id',$ownerId)->orderBy('flat_number')->get(['id','flat_number']);
-        $categories = BillCategory::where('owner_id',$ownerId)->orderBy('name')->get(['id','name']);
-
-        return view('owner.bills.index', compact('bills','flats','categories','filters','totals'));
+        return view('owner.bills.index', array_merge(
+            compact('bills', 'filters', 'totals'),
+            $dropdownData
+        ));
     }
 
     public function create()
     {
         $ownerId = auth()->id();
-        $flats = Flat::where('owner_id',$ownerId)->orderBy('flat_number')->get(['id','flat_number']);
-        $categories = BillCategory::where('owner_id',$ownerId)->orderBy('name')->get(['id','name']);
-        return view('owner.bills.create', compact('flats','categories'));
+        $dropdownData = $this->billService->getDropdownData($ownerId);
+
+        return view('owner.bills.create', $dropdownData);
     }
 
-    public function store(Request $request)
+    public function store(StoreBillRequest $request)
     {
-        $data = $request->validate([
-            'flat_id'          => ['required','exists:flats,id'],
-            'bill_category_id' => ['required','exists:bill_categories,id'],
-            'month'            => ['required','date'], // use first day of month in UI
-            'amount'           => ['required','numeric','min:0'],
-            'notes'            => ['nullable','string','max:1000'],
-        ]);
+        try {
+            $data = $request->validated();
 
-        $bill = $this->service->createMonthlyBill(
-            ownerId: auth()->id(),
-            flatId: (int)$data['flat_id'],
-            categoryId: (int)$data['bill_category_id'],
-            monthYmd: $data['month'],
-            amount: (float)$data['amount'],
-            notes: $data['notes'] ?? null
-        );
+            $bill = $this->billService->createMonthlyBill(
+                ownerId: auth()->id(),
+                flatId: (int)$data['flat_id'],
+                categoryId: (int)$data['bill_category_id'],
+                monthYmd: $data['month'],
+                amount: (float)$data['amount'],
+                notes: $data['notes'] ?? null
+            );
 
-        // (Optional) dispatch email notification here
-        // Notification::send($bill->owner, new BillCreated($bill));
+            return redirect()->route('owner.bills.index')->with('ok', 'Bill created successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to create bill: ' . $e->getMessage())->withInput();
+        }
+    }
 
-        return redirect()->route('owner.bills.index')->with('ok','Bill created');
+    public function edit(Bill $bill)
+    {
+        // Authorization is handled in UpdateBillRequest
+        $dropdownData = $this->billService->getDropdownData(auth()->id());
+
+        return view('owner.bills.edit', array_merge(
+            compact('bill'),
+            $dropdownData
+        ));
+    }
+
+    public function update(UpdateBillRequest $request, Bill $bill)
+    {
+        try {
+            $data = $request->validated();
+
+            $bill->update([
+                'flat_id'          => $data['flat_id'],
+                'bill_category_id' => $data['bill_category_id'],
+                'month'            => $data['month'],
+                'amount'           => $data['amount'],
+                'notes'            => $data['notes'],
+            ]);
+
+            return redirect()->route('owner.bills.index')->with('ok', 'Bill updated successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to update bill: ' . $e->getMessage())->withInput();
+        }
+    }
+
+    public function destroy(Bill $bill)
+    {
+        // Ensure owner can only delete their own bills
+        abort_unless($bill->owner_id === auth()->id(), 403);
+
+        try {
+            // Only allow deletion of unpaid bills
+            if ($bill->status !== 'unpaid') {
+                return back()->with('error', 'Only unpaid bills can be deleted. This bill has status: ' . $bill->status);
+            }
+
+            // Check if bill has any payments
+            $paymentsCount = $bill->payments()->count();
+            if ($paymentsCount > 0) {
+                return back()->with('error', 'Cannot delete bill that has payments. Please remove payments first.');
+            }
+
+            $bill->delete();
+            return back()->with('ok', 'Bill deleted successfully');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to delete bill: ' . $e->getMessage());
+        }
+    }
+
+    public function payments(Bill $bill)
+    {
+        // Ensure owner can only view payments for their own bills
+        abort_unless($bill->owner_id === auth()->id(), 403);
+
+        $payments = $bill->payments()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $totalPaid = $payments->sum('amount');
+        $totalDue = $bill->amount + $bill->due_carry_forward;
+        $remaining = max(0, $totalDue - $totalPaid);
+
+        return view('owner.bills.payments', compact('bill', 'payments', 'totalPaid', 'totalDue', 'remaining'));
     }
 }
