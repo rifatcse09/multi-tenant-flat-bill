@@ -1,38 +1,101 @@
 @extends('layouts.app')
-@section('title','New House Owner')
+@section('title', 'Create Owner')
 
 @section('content')
-<h1 class="text-2xl font-semibold mb-4 mt-2">Create House Owner</h1>
+    <div class="max-w-2xl mx-auto">
+        <div class="mb-6">
+            <h1 class="text-2xl font-semibold mb-2">Create New Owner</h1>
+            <p class="text-gray-600">Add a new property owner to the system</p>
+        </div>
 
-<form method="POST" action="{{ route('admin.owners.store') }}" class="bg-white p-6 rounded-lg shadow-sm border max-w-xl">
-  @csrf
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Name</span>
-    <input name="name" value="{{ old('name') }}" class="mt-1 w-full border p-2 rounded">
-    @error('name')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+        @if (session('error'))
+            <div class="mb-4 bg-red-100 border border-red-200 text-red-800 px-4 py-3 rounded">
+                {{ session('error') }}
+            </div>
+        @endif
 
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Email</span>
-    <input name="email" type="email" value="{{ old('email') }}" class="mt-1 w-full border p-2 rounded">
-    @error('email')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+        <div class="bg-white rounded-lg shadow-sm border">
+            <div class="p-6">
+                <form method="POST" action="{{ route('admin.owners.store') }}">
+                    @csrf
 
-  <label class="block mb-3">
-    <span class="text-sm text-gray-700">Slug (subdomain) – optional</span>
-    <input name="slug" value="{{ old('slug') }}" class="mt-1 w-full border p-2 rounded" placeholder="owner1">
-    @error('slug')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+                    <!-- Name -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Owner Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" name="name" value="{{ old('name') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
+                            required>
+                        @error('name')
+                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-  <label class="block mb-5">
-    <span class="text-sm text-gray-700">Password (optional)</span>
-    <input name="password" type="password" class="mt-1 w-full border p-2 rounded" placeholder="default 'password' if empty">
-    @error('password')<div class="text-red-600 text-sm">{{ $message }}</div>@enderror
-  </label>
+                    <!-- Email -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Email Address <span class="text-red-500">*</span>
+                        </label>
+                        <input type="email" name="email" value="{{ old('email') }}"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('email') border-red-500 @enderror"
+                            required>
+                        @error('email')
+                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-  <div class="flex gap-2 mt-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
-    <a href="{{ route('admin.owners.index') }}" class="px-4 py-2 border rounded">Cancel</a>
-  </div>
-</form>
+                    <!-- Password -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Password <span class="text-red-500">*</span>
+                        </label>
+                        <input type="password" name="password"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror"
+                            required>
+                        @error('password')
+                            <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
+                        @enderror
+                        <p class="text-sm text-gray-500 mt-1">Minimum 8 characters required</p>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+                        <a href="{{ route('admin.owners.index') }}"
+                            class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                            Create Owner
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Information Box -->
+        <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-900">Owner Account Information</h3>
+                    <div class="text-sm text-blue-800 mt-1">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>The owner will be able to log in with the provided email and password</li>
+                            <li>They can manage their buildings, flats, and tenants</li>
+                            <li>Password can be changed later by the owner or admin</li>
+                            <li>Owner will have access to billing and payment management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection

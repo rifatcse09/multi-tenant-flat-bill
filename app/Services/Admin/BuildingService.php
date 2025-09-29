@@ -89,20 +89,6 @@ class BuildingService
     }
 
     /**
-     * Validate building data.
-     */
-    public function validateBuildingData(array $data, ?int $buildingId = null): array
-    {
-        $rules = [
-            'owner_id' => ['required', 'exists:users,id'],
-            'name' => ['required', 'string', 'max:120'],
-            'address' => ['nullable', 'string', 'max:255'],
-        ];
-
-        return $rules;
-    }
-
-    /**
      * Check if building can be deleted.
      */
     public function canDeleteBuilding(Building $building): array
@@ -129,5 +115,4 @@ class BuildingService
             'reasons' => $reasons,
         ];
     }
-
 }

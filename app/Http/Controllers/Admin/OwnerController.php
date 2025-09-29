@@ -4,6 +4,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreOwnerRequest;
+use App\Http\Requests\Admin\UpdateOwnerRequest;
 use App\Models\User;
 use App\Services\Admin\OwnerService;
 use Illuminate\Http\Request;
@@ -31,13 +33,12 @@ class OwnerController extends Controller
         return view('admin.owners.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreOwnerRequest $request)
     {
-        $rules = $this->ownerService->validateOwnerData($request->all());
-        $data = $request->validate($rules);
-
         try {
+            $data = $request->validated();
             $owner = $this->ownerService->createOwner($data);
+
             return redirect()->route('admin.owners.index')
                 ->with('ok', 'Owner created successfully');
         } catch (\Exception $e) {
@@ -52,15 +53,12 @@ class OwnerController extends Controller
         return view('admin.owners.edit', compact('owner'));
     }
 
-    public function update(Request $request, User $owner)
+    public function update(UpdateOwnerRequest $request, User $owner)
     {
-        abort_unless($owner->role === 'owner', 404);
-
-        $rules = $this->ownerService->validateOwnerData($request->all(), $owner->id);
-        $data = $request->validate($rules);
-
         try {
+            $data = $request->validated();
             $this->ownerService->updateOwner($owner, $data);
+
             return redirect()->route('admin.owners.index')
                 ->with('ok', 'Owner updated successfully');
         } catch (\Exception $e) {

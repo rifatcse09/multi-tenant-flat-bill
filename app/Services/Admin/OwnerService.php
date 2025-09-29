@@ -4,9 +4,7 @@ namespace App\Services\Admin;
 
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\DB;
 
 class OwnerService
 {
@@ -87,58 +85,5 @@ class OwnerService
             'can_delete' => $canDelete,
             'reasons' => $reasons,
         ];
-    }
-
-    /**
-     * Validate owner data.
-     */
-    public function validateOwnerData(array $data, ?int $ownerId = null): array
-    {
-        $rules = [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255'],
-            'password' => ['required', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()],
-        ];
-
-        // For updates, make password optional and add unique email validation
-        if ($ownerId) {
-            $rules['email'][] = 'unique:users,email,' . $ownerId;
-            $rules['password'] = ['nullable', 'confirmed', \Illuminate\Validation\Rules\Password::defaults()];
-        } else {
-            $rules['email'][] = 'unique:users';
-        }
-
-        return $rules;
-    }
-
-    /**
-     * Get owner statistics.
-     */
-    public function getOwnerStats(): array
-    {
-        $totalOwners = User::where('role', 'owner')->count();
-        $ownersWithBuildings = User::where('role', 'owner')
-            ->whereHas('buildings')
-            ->count();
-        $totalBuildings = \App\Models\Building::withoutGlobalScopes()->count();
-
-        return [
-            'total_owners' => $totalOwners,
-            'owners_with_buildings' => $ownersWithBuildings,
-            'owners_without_buildings' => $totalOwners - $ownersWithBuildings,
-            'total_buildings' => $totalBuildings,
-        ];
-    }
-
-    /**
-     * Get recent owners.
-     */
-    public function getRecentOwners(int $limit = 5): Collection
-    {
-        return User::where('role', 'owner')
-            ->withCount('buildings')
-            ->latest()
-            ->limit($limit)
-            ->get(['id', 'name', 'email', 'created_at']);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules;
 
 class StoreOwnerRequest extends FormRequest
 {
@@ -20,10 +21,9 @@ class StoreOwnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:150', 'unique:users,email'],
-            'slug' => ['nullable', 'alpha_dash', 'max:80', 'unique:users,slug'],
-            'password' => ['nullable', 'string', 'min:6'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', Rules\Password::defaults()],
         ];
     }
 
@@ -34,13 +34,27 @@ class StoreOwnerRequest extends FormRequest
     {
         return [
             'name.required' => 'Owner name is required.',
-            'name.max' => 'Owner name cannot exceed 100 characters.',
-            'email.required' => 'Email is required.',
+            'name.string' => 'Owner name must be a valid string.',
+            'name.max' => 'Owner name cannot exceed 255 characters.',
+
+            'email.required' => 'Email address is required.',
             'email.email' => 'Please enter a valid email address.',
-            'email.unique' => 'This email is already registered.',
-            'slug.alpha_dash' => 'Slug can only contain letters, numbers, dashes and underscores.',
-            'slug.unique' => 'This slug is already taken.',
-            'password.min' => 'Password must be at least 6 characters.',
+            'email.unique' => 'This email address is already registered.',
+            'email.max' => 'Email address cannot exceed 255 characters.',
+
+            'password.required' => 'Password is required.',
+        ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'owner name',
+            'email' => 'email address',
+            'password' => 'password',
         ];
     }
 }

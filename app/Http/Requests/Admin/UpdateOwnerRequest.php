@@ -3,7 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules;
 
 class UpdateOwnerRequest extends FormRequest
 {
@@ -12,7 +12,10 @@ class UpdateOwnerRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->role === 'admin';
+        $owner = $this->route('owner');
+        return auth()->check() &&
+               auth()->user()->role === 'admin' &&
+               $owner->role === 'owner';
     }
 
     /**
@@ -23,10 +26,9 @@ class UpdateOwnerRequest extends FormRequest
         $owner = $this->route('owner');
 
         return [
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:150', Rule::unique('users', 'email')->ignore($owner->id)],
-            'slug' => ['nullable', 'alpha_dash', 'max:80', Rule::unique('users', 'slug')->ignore($owner->id)],
-            'password' => ['nullable', 'string', 'min:6'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $owner->id],
+            'password' => ['nullable', Rules\Password::defaults()],
         ];
     }
 
@@ -37,13 +39,40 @@ class UpdateOwnerRequest extends FormRequest
     {
         return [
             'name.required' => 'Owner name is required.',
-            'name.max' => 'Owner name cannot exceed 100 characters.',
-            'email.required' => 'Email is required.',
+            'name.string' => 'Owner name must be a valid string.',
+            'name.max' => 'Owner name cannot exceed 255 characters.',
+
+            'email.required' => 'Email address is required.',
             'email.email' => 'Please enter a valid email address.',
-            'email.unique' => 'This email is already registered.',
-            'slug.alpha_dash' => 'Slug can only contain letters, numbers, dashes and underscores.',
-            'slug.unique' => 'This slug is already taken.',
-            'password.min' => 'Password must be at least 6 characters.',
+            'email.unique' => 'This email address is already registered.',
+            'email.max' => 'Email address cannot exceed 255 characters.',
         ];
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     */
+    public function attributes(): array
+    {
+        return [
+            'name' => 'owner name',
+            'email' => 'email address',
+            'password' => 'password',
+        ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $owner = $this->route('owner');
+
+            // Additional validation: ensure we're updating an owner
+            if ($owner->role !== 'owner') {
+                $validator->errors()->add('owner', 'Invalid owner record.');
+            }
+        });
     }
 }

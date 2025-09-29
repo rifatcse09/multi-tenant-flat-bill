@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreBuildingRequest;
+use App\Http\Requests\Admin\UpdateBuildingRequest;
 use App\Models\Building;
 use App\Services\Admin\BuildingService;
 use Illuminate\Http\Request;
@@ -31,13 +33,12 @@ class BuildingController extends Controller
         return view('admin.buildings.create', compact('owners'));
     }
 
-    public function store(Request $request)
+    public function store(StoreBuildingRequest $request)
     {
-        $rules = $this->buildingService->validateBuildingData($request->all());
-        $data = $request->validate($rules);
-
         try {
+            $data = $request->validated();
             $this->buildingService->createBuilding($data);
+
             return redirect()->route('admin.buildings.index')
                 ->with('ok', 'Building created successfully');
         } catch (\Exception $e) {
@@ -59,13 +60,12 @@ class BuildingController extends Controller
         return view('admin.buildings.edit', compact('building', 'owners'));
     }
 
-    public function update(Request $request, Building $building)
+    public function update(UpdateBuildingRequest $request, Building $building)
     {
-        $rules = $this->buildingService->validateBuildingData($request->all(), $building->id);
-        $data = $request->validate($rules);
-
         try {
+            $data = $request->validated();
             $this->buildingService->updateBuilding($building, $data);
+
             return redirect()->route('admin.buildings.index')
                 ->with('ok', 'Building updated successfully');
         } catch (\Exception $e) {

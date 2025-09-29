@@ -61,6 +61,7 @@ class UpdateBillRequest extends FormRequest
     {
         $validator->after(function ($validator) {
             $this->validateOwnership($validator);
+            $this->validateTenantAssignment($validator);
             $this->validateUniqueBill($validator);
             $this->validateBillStatus($validator);
         });
@@ -80,7 +81,7 @@ class UpdateBillRequest extends FormRequest
                        ->first();
 
             if (!$flat) {
-                $validator->errors()->add('flat_id', 'You can only assign bills to your own flats.');
+                $validator->errors()->add('flat_id', 'You can only update bills for your own flats.');
             }
         }
 
@@ -97,7 +98,27 @@ class UpdateBillRequest extends FormRequest
     }
 
     /**
-     * Validate that no duplicate bill exists (excluding current bill).
+     * Validate that the flat has an assigned tenant for the bill month.
+     */
+    protected function validateTenantAssignment($validator): void
+    {
+        if ($this->filled(['flat_id', 'month'])) {
+            $month = Carbon::parse($this->month)->startOfMonth()->toDateString();
+            $flat = Flat::find($this->flat_id);
+
+            if ($flat) {
+                // Check if flat has a tenant assigned for this month
+                $tenant = $flat->tenantForMonth($month);
+
+                if (!$tenant) {
+                    $validator->errors()->add('flat_id', 'Cannot update bill for this flat. No tenant is assigned for ' . Carbon::parse($month)->format('F Y') . '.');
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate that no duplicate bill exists for the same flat, category, and month.
      */
     protected function validateUniqueBill($validator): void
     {
@@ -105,47 +126,29 @@ class UpdateBillRequest extends FormRequest
             $bill = $this->route('bill');
             $month = Carbon::parse($this->month)->startOfMonth()->toDateString();
 
-            // Only check for duplicates if flat, category, or month changed
-            if ($bill->flat_id != $this->flat_id ||
-                $bill->bill_category_id != $this->bill_category_id ||
-                $bill->month !== $month) {
+            $exists = Bill::where('owner_id', auth()->id())
+                         ->where('flat_id', $this->flat_id)
+                         ->where('bill_category_id', $this->bill_category_id)
+                         ->where('month', $month)
+                         ->where('id', '!=', $bill->id)
+                         ->exists();
 
-                $exists = Bill::where('owner_id', auth()->id())
-                             ->where('flat_id', $this->flat_id)
-                             ->where('bill_category_id', $this->bill_category_id)
-                             ->where('month', $month)
-                             ->where('id', '!=', $bill->id)
-                             ->exists();
-
-                if ($exists) {
-                    $validator->errors()->add('month', 'A bill already exists for this flat, category, and month.');
-                }
+            if ($exists) {
+                $validator->errors()->add('month', 'A bill already exists for this flat, category, and month.');
             }
         }
     }
 
     /**
-     * Validate bill status restrictions.
+     * Validate that the bill can be updated based on its status.
      */
     protected function validateBillStatus($validator): void
     {
         $bill = $this->route('bill');
 
-        // Prevent editing bills that have payments
-        if ($bill->payments()->exists()) {
-            // Allow only amount and notes changes for bills with payments
-            if ($bill->flat_id != $this->flat_id ||
-                $bill->bill_category_id != $this->bill_category_id ||
-                $bill->month !== Carbon::parse($this->month)->startOfMonth()->toDateString()) {
-
-                $validator->errors()->add('month', 'Cannot change flat, category, or month for bills that have payments.');
-            }
-        }
-
-        // Warn if bill is fully paid
-        if ($bill->status === 'paid') {
-            // Still allow editing but add a warning
-            session()->flash('warning', 'You are editing a bill that is marked as paid. Please ensure this is intentional.');
+        // Only allow updates to unpaid bills
+        if ($bill->status !== 'unpaid') {
+            $validator->errors()->add('bill', 'Only unpaid bills can be updated. This bill has status: ' . $bill->status);
         }
     }
 
@@ -166,9 +169,6 @@ class UpdateBillRequest extends FormRequest
     /**
      * Get validated data with processed month.
      */
-    public function validated($key = null, $default = null): array
-    {
-        $validated = parent::validated($key, $default);
 
         // Ensure month is first day of month
         if (isset($validated['month'])) {
