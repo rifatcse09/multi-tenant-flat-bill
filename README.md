@@ -71,6 +71,8 @@ This project supports **subdomain-based tenant isolation** (optional).
 
 > For the assessment, **column-based tenant scoping** (`owner_id` on models) is used by default. Subdomain routing is optional.
 
+> We used Gates and Global Scopes for role + tenant isolation. Policies could be introduced later if we need per-model granular checks.
+
 ---
 
 ## Multi-Tenant Implementation
