@@ -7,13 +7,12 @@
             <h1 class="text-2xl font-semibold">Bill Categories</h1>
             <p class="text-gray-600 mt-1">Manage your billing categories</p>
         </div>
-        <a href="{{ route('owner.categories.create') }}"
-           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+        <x-link-button href="{{ route('owner.categories.create') }}" variant="primary">
             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
             </svg>
             Add Category
-        </a>
+        </x-link-button>
     </div>
 
     <!-- Categories Table -->
@@ -41,16 +40,12 @@
                                 {{ $category->created_at->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center space-x-3">
-                                    <a href="{{ route('owner.categories.edit', $category) }}"
-                                       class="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</a>
-                                    <form method="POST" action="{{ route('owner.categories.destroy', $category) }}" class="inline">
+                                <div class="flex items-center gap-2">
+                                    <x-link-button href="{{ route('owner.categories.edit', $category) }}" variant="secondary" size="sm">Edit</x-link-button>
+                                    <form method="POST" action="{{ route('owner.categories.destroy', $category) }}" class="inline"
+                                        onsubmit="return confirm('Delete {{ $category->name }}? This will affect related bills.')">
                                         @csrf @method('DELETE')
-                                        <button type="submit"
-                                                class="text-red-600 hover:text-red-900 text-sm font-medium"
-                                                onclick="return confirm('Delete {{ $category->name }}? This will affect related bills.')">
-                                            Delete
-                                        </button>
+                                        <x-danger-button>Delete</x-danger-button>
                                     </form>
                                 </div>
                             </td>
@@ -58,7 +53,7 @@
                     @empty
                         <tr>
                             <td class="px-6 py-12 text-center text-gray-500" colspan="4">
-                                No categories found. <a href="{{ route('owner.categories.create') }}" class="text-blue-600 hover:underline">Create first category</a>
+                                No categories found. <a href="{{ route('owner.categories.create') }}" class="text-brand-600 hover:underline">Create first category</a>
                             </td>
                         </tr>
                     @endforelse

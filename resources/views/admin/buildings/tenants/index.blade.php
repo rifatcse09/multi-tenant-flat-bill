@@ -10,7 +10,7 @@
 
 @if(session('ok')) <div class="mb-4 bg-green-100 p-3 rounded">{{ session('ok') }}</div> @endif
 
-<a href="{{ route('admin.buildings.tenants.create', $building) }}" class="bg-blue-600 text-white px-4 py-2 rounded">Assign Tenant</a>
+<a href="{{ route('admin.buildings.tenants.create', $building) }}" class="bg-brand-600 text-white px-4 py-2 rounded">Assign Tenant</a>
 
 <div class="mt-4 bg-white rounded-lg shadow-sm border overflow-hidden">
   <table class="w-full text-left">

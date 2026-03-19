@@ -8,7 +8,7 @@
             <p class="text-gray-600 mt-1">Manage property owners in the system</p>
         </div>
         <a href="{{ route('admin.owners.create') }}"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            class="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition">
             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -22,19 +22,16 @@
             <div class="flex-1">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Search Owners</label>
                 <input name="q" value="{{ $search ?? '' }}" placeholder="Search by name or email..."
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
             </div>
             <div>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <button type="submit" class="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition">
                     Search
                 </button>
             </div>
             @if ($search ?? '')
                 <div>
-                    <a href="{{ route('admin.owners.index') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                        Clear
-                    </a>
+                    <x-link-button href="{{ route('admin.owners.index') }}" variant="secondary">Clear</x-link-button>
                 </div>
             @endif
         </form>
@@ -91,11 +88,11 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <span
-                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-100 text-brand-800">
                                         {{ $owner->buildings_count ?? 0 }} buildings
                                     </span>
                                     <a href="{{ route('admin.buildings.create', ['owner_id' => $owner->id]) }}"
-                                        class="inline-flex items-center px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition"
+                                        class="inline-flex items-center px-2 py-1 bg-brand-600 text-white text-xs rounded hover:bg-brand-700 transition"
                                         title="Add Building">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -108,16 +105,12 @@
                                 {{ $owner->created_at->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center space-x-3">
-                                    <a href="{{ route('admin.owners.edit', $owner) }}"
-                                        class="text-blue-600 hover:text-blue-900 text-sm font-medium">Edit</a>
-                                    <form method="POST" action="{{ route('admin.owners.destroy', $owner) }}"
-                                        class="inline">
+                                <div class="flex items-center gap-2">
+                                    <x-link-button href="{{ route('admin.owners.edit', $owner) }}" variant="secondary" size="sm">Edit</x-link-button>
+                                    <form method="POST" action="{{ route('admin.owners.destroy', $owner) }}" class="inline"
+                                        onsubmit="return confirm('Delete {{ $owner->name }}? This will remove all their buildings.')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 text-sm font-medium"
-                                            onclick="return confirm('Delete {{ $owner->name }}? This will remove all their buildings.')">
-                                            Delete
-                                        </button>
+                                        <x-danger-button>Delete</x-danger-button>
                                     </form>
                                 </div>
                             </td>
@@ -135,14 +128,14 @@
                                         <p class="text-lg font-medium">No owners found matching "{{ $search }}"</p>
                                         <p class="mt-1">Try adjusting your search terms</p>
                                         <a href="{{ route('admin.owners.index') }}"
-                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-brand-600 bg-brand-100 hover:bg-brand-200">
                                             Show all owners
                                         </a>
                                     @else
                                         <p class="text-lg font-medium">No owners found</p>
                                         <p class="mt-1">Get started by creating the first owner</p>
                                         <a href="{{ route('admin.owners.create') }}"
-                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-brand-600 bg-brand-100 hover:bg-brand-200">
                                             Create first owner
                                         </a>
                                     @endif

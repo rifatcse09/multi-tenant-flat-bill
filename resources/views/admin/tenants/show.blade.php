@@ -11,7 +11,7 @@
             </div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('admin.tenants.edit', $tenant) }}"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    class="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition">
                     Edit Tenant
                 </a>
                 <a href="{{ route('admin.tenants.index') }}"
@@ -56,12 +56,12 @@
 
         <!-- Statistics -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-blue-600">{{ $assignmentHistory->count() ?? 0 }}</div>
+            <div class="bg-brand-50 p-4 rounded-lg">
+                <div class="text-2xl font-bold text-brand-600">{{ $assignmentHistory->count() ?? 0 }}</div>
                 <div class="text-sm text-gray-600">Flat Assignments</div>
             </div>
             <div class="bg-green-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-green-600">{{ $tenant->flats->count() ?? 0 }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ $tenant->flats->count() ?? 0 }}</div>
                 <div class="text-sm text-gray-600">Total Flats</div>
             </div>
         </div>
@@ -71,7 +71,7 @@
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
             <div class="flex items-center space-x-4">
                 <a href="{{ route('admin.tenants.edit', $tenant) }}"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                    class="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition">
                     Edit Tenant
                 </a>
                 <form method="POST" action="{{ route('admin.tenants.destroy', $tenant) }}" class="inline">

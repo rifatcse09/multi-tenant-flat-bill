@@ -5,6 +5,17 @@ Supports **Super Admin → House Owners → Tenants** roles, flat assignments, b
 
 ---
 
+## Business Goals
+
+1. **Streamline property billing** — Replace manual spreadsheets and paper records with a single platform for building owners to manage flats, tenants, and bills.
+2. **Reduce payment delays** — Clear visibility of dues, carry-forward, and payment history helps owners chase payments and tenants stay informed.
+3. **Scale for multiple owners** — Multi-tenant SaaS model allows one platform to serve many property owners, each with isolated data.
+4. **Improve audit & compliance** — Ledger-style records (bills, payments, adjustments) provide a traceable history for accounting and disputes.
+5. **Save time on repetitive tasks** — Automated bill generation, carry-forward, and email notifications cut down manual data entry and follow-ups.
+6. **Enable future growth** — Tenant portal, exports (CSV/PDF), and APIs set the foundation for mobile apps and integrations.
+
+---
+
 ## Features
 
 - **Super Admin**
@@ -58,6 +69,56 @@ Seeds include:
 php artisan serve
 ```
 - Open: http://localhost:8000
+
+### 4b. Run with Laravel Sail (Docker)
+This project includes [Laravel Sail](https://laravel.com/docs/sail) for a Docker-based development environment.
+
+**First-time setup:**
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+**Configure `.env` for Sail** (MySQL, Redis, MailHog use Docker service hostnames):
+```env
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_DATABASE=laravel
+DB_USERNAME=sail
+DB_PASSWORD=password
+
+REDIS_HOST=redis
+
+MAIL_MAILER=smtp
+MAIL_HOST=mailhog
+MAIL_PORT=1025
+```
+
+**Optional:** Add Sail user/group IDs (Linux) to avoid permission issues:
+```env
+WWWUSER=1000
+WWWGROUP=1000
+APP_PORT=80
+```
+
+**Start Sail:**
+```bash
+./vendor/bin/sail up -d
+./vendor/bin/sail artisan migrate --seed
+```
+
+- App: http://localhost (or http://localhost:80)
+- MailHog: http://localhost:8025
+
+**Useful Sail commands:**
+```bash
+./vendor/bin/sail up -d          # Start containers (detached)
+./vendor/bin/sail down           # Stop containers
+./vendor/bin/sail artisan ...    # Run Artisan commands
+./vendor/bin/sail composer ...   # Run Composer
+./vendor/bin/sail npm run dev     # Build frontend assets
+```
 
 ### 5. Subdomain (if enabled)
 This project supports **subdomain-based tenant isolation** (optional).  
@@ -136,15 +197,21 @@ This project supports **subdomain-based tenant isolation** (optional).
 
 ## Credentials (for testing)
 
-After seeding:
-- Super Admin: `admin@example.com / password`
-- Owner: `owner1@example.com / password`
+After `php artisan migrate --seed` (or `sail artisan migrate --seed`):
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Super Admin** | admin@example.com | password |
+| **House Owner 1** | owner1@example.com | password |
+| **House Owner 2** | owner2@example.com | password |
+
+The login page shows **Demo Login** buttons — click any role to auto-fill and sign in. Seed data includes buildings, flats, tenants, bills, and sample payments for demos.
 
 ---
 
 ## Next Steps / Improvements
 
-- Dashobard (Total Building, Flats, Unpaid Bills, Payment This Month)
+- Dashboard (Total Building, Flats, Unpaid Bills, Payment This Month)
 - Tenant portal (login & view bills)
 - Export bills/payments (CSV, PDF)
 - Role-based API (for mobile app integration)
@@ -166,9 +233,6 @@ After seeding:
 
 ### Tenants House Owners
 ![Tenants House Owners](docs/screenshots/super_admin_tenants.png)
-
-### Buildings House Owners
-![Buildings House Owners](docs/screenshots/building_with_tenant.png)
 
 ### Bills House Owners
 ![Bills House Owners Screenshot](docs/screenshots/bills.png)

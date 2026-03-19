@@ -25,7 +25,7 @@
   </label>
 
   <div class="flex gap-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
+    <button class="bg-brand-600 text-white px-4 py-2 rounded">Create</button>
     <a href="{{ route('admin.tenants.index') }}" class="px-4 py-2 border rounded">Cancel</a>
   </div>
 </form>

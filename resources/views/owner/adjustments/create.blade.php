@@ -9,10 +9,7 @@
                 <h1 class="text-2xl font-semibold text-gray-900">Add Bill Adjustment</h1>
                 <p class="text-gray-600 mt-1">Add an adjustment to increase or decrease a bill amount</p>
             </div>
-            <a href="{{ route('owner.bills.index') }}"
-                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                Back to Bills
-            </a>
+            <x-link-button href="{{ route('owner.bills.index') }}" variant="secondary">Back to Bills</x-link-button>
         </div>
 
         @if (session('error'))
@@ -46,7 +43,7 @@
                         Select Bill <span class="text-red-500">*</span>
                     </label>
                     <select name="bill_id" id="bill_id" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                         @if ($bill)
                             <option value="{{ $bill->id }}" selected>
                                 {{ $bill->month->format('M Y') }} —
@@ -78,7 +75,7 @@
                         <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
                             <input type="radio" name="type" value="increase"
                                 {{ old('type') == 'increase' ? 'checked' : '' }}
-                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                class="h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-300">
                             <div class="ml-3">
                                 <div class="text-sm font-medium text-gray-900">Increase</div>
                                 <div class="text-sm text-gray-500">Add amount to bill</div>
@@ -87,7 +84,7 @@
                         <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-gray-50">
                             <input type="radio" name="type" value="decrease"
                                 {{ old('type') == 'decrease' ? 'checked' : '' }}
-                                class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                class="h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-300">
                             <div class="ml-3">
                                 <div class="text-sm font-medium text-gray-900">Decrease</div>
                                 <div class="text-sm text-gray-500">Subtract amount from bill</div>
@@ -107,7 +104,7 @@
                     <div class="relative">
                         <input type="number" name="amount" id="amount" step="0.01" min="0.01" required
                             value="{{ old('amount') }}"
-                            class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                     </div>
                     @error('amount')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -121,21 +118,16 @@
                     </label>
                     <input type="text" name="reason" id="reason" required value="{{ old('reason') }}"
                         placeholder="e.g., Late payment fee, Discount for early payment"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                     @error('reason')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Submit Buttons -->
-                <div class="flex items-center justify-end space-x-3 pt-4 border-t">
-                    <a href="{{ route('owner.bills.index') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                        Cancel
-                    </a>
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
-                        Add Adjustment
-                    </button>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t">
+                    <x-link-button href="{{ route('owner.bills.index') }}" variant="secondary">Cancel</x-link-button>
+                    <x-primary-button>Add Adjustment</x-primary-button>
                 </div>
             </form>
         </div>

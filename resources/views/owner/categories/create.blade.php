@@ -15,8 +15,10 @@
   </label>
 
   <div class="flex gap-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
-    <a href="{{ route('owner.categories.index') }}" class="px-4 py-2 border rounded">Cancel</a>
+    <div class="flex gap-2">
+        <x-primary-button>Create</x-primary-button>
+        <x-link-button href="{{ route('owner.categories.index') }}" variant="secondary">Cancel</x-link-button>
+    </div>
   </div>
 </form>
 @endsection

@@ -26,7 +26,7 @@
                             Owner Name <span class="text-red-500">*</span>
                         </label>
                         <input type="text" name="name" value="{{ old('name', $owner->name) }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('name') border-red-500 @enderror"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('name') border-red-500 @enderror"
                             required>
                         @error('name')
                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
@@ -39,7 +39,7 @@
                             Email Address <span class="text-red-500">*</span>
                         </label>
                         <input type="email" name="email" value="{{ old('email', $owner->email) }}"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('email') border-red-500 @enderror"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('email') border-red-500 @enderror"
                             required>
                         @error('email')
                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
@@ -52,7 +52,7 @@
                             New Password
                         </label>
                         <input type="password" name="password"
-                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('password') border-red-500 @enderror">
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('password') border-red-500 @enderror">
                         @error('password')
                             <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                         @enderror
@@ -67,7 +67,7 @@
                             Cancel
                         </a>
                         <button type="submit"
-                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                            class="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition">
                             Update Owner
                         </button>
                     </div>
@@ -95,7 +95,7 @@
                             @if ($owner->email_verified_at)
                                 <li>Email verified: {{ $owner->email_verified_at->format('M d, Y') }}</li>
                             @else
-                                <li class="text-orange-600">Email not verified</li>
+                                <li class="text-brand-600">Email not verified</li>
                             @endif
                         </ul>
                     </div>

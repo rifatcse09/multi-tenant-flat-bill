@@ -5,20 +5,20 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold">{{ $building->name }}</h1>
         <div class="flex gap-2">
-            <a href="{{ route('admin.buildings.edit', $building) }}" class="bg-blue-600 text-white px-4 py-2 rounded">Edit
+            <a href="{{ route('admin.buildings.edit', $building) }}" class="bg-brand-600 text-white px-4 py-2 rounded">Edit
                 Building</a>
-            <a href="{{ route('admin.buildings.index') }}" class="px-4 py-2 border rounded">Back to List</a>
+            <x-link-button href="{{ route('admin.buildings.index') }}" variant="secondary">Back to List</x-link-button>
         </div>
     </div>
 
     @if (isset($stats))
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-blue-600">{{ $stats['total_flats'] }}</div>
+            <div class="bg-brand-50 p-4 rounded-lg">
+                <div class="text-2xl font-bold text-brand-600">{{ $stats['total_flats'] }}</div>
                 <div class="text-sm text-gray-600">Total Flats</div>
             </div>
             <div class="bg-green-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-green-600">{{ $stats['occupied_flats'] }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ $stats['occupied_flats'] }}</div>
                 <div class="text-sm text-gray-600">Occupied Flats</div>
             </div>
             <div class="bg-yellow-50 p-4 rounded-lg">

@@ -7,10 +7,7 @@
             <h1 class="text-2xl font-semibold">Flats in {{ $building->name }}</h1>
             <p class="text-gray-600 text-sm">{{ $building->address }}</p>
         </div>
-        <a href="{{ route('owner.buildings.flats.create', $building) }}"
-            class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-            New Flat
-        </a>
+        <x-link-button href="{{ route('owner.buildings.flats.create', $building) }}" variant="primary">New Flat</x-link-button>
     </div>
 
     @if (session('ok'))
@@ -26,9 +23,7 @@
     @endif
 
     <div class="mt-6 flex gap-2">
-        <a href="{{ route('owner.buildings.index') }}" class="px-3 py-2 border rounded hover:bg-gray-50">
-            ← Back to Buildings
-        </a>
+        <x-link-button href="{{ route('owner.buildings.index') }}" variant="secondary">← Back to Buildings</x-link-button>
     </div>
 
     <div class="mt-4 bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -48,14 +43,14 @@
                         <td class="p-3">{{ $flat->flat_owner_name ?? 'Not specified' }}</td>
                         <td class="p-3">{{ $flat->flat_owner_phone ?? 'Not specified' }}</td>
                         <td class="p-3">
-                            <a href="{{ route('owner.flats.edit', $flat) }}" class="text-blue-700 mr-3 hover:underline">
-                                Edit
-                            </a>
-                            <form method="POST" action="{{ route('owner.flats.destroy', $flat) }}" class="inline"
-                                onsubmit="return confirm('Delete this flat?');">
-                                @csrf @method('DELETE')
-                                <button class="text-red-600 hover:underline">Delete</button>
-                            </form>
+                            <div class="flex items-center gap-2">
+                                <x-link-button href="{{ route('owner.flats.edit', $flat) }}" variant="secondary" size="sm">Edit</x-link-button>
+                                <form method="POST" action="{{ route('owner.flats.destroy', $flat) }}" class="inline"
+                                    onsubmit="return confirm('Delete this flat?');">
+                                    @csrf @method('DELETE')
+                                    <x-danger-button>Delete</x-danger-button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty
@@ -63,7 +58,7 @@
                         <td class="p-3 text-gray-500" colspan="4">
                             No flats found.
                             <a href="{{ route('owner.buildings.flats.create', $building) }}"
-                                class="text-blue-600 hover:underline">
+                                class="text-brand-600 hover:underline">
                                 Create your first flat
                             </a>
                         </td>

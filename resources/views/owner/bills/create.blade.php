@@ -9,10 +9,7 @@
                 <h1 class="text-2xl font-semibold text-gray-900">Create New Bill</h1>
                 <p class="text-gray-600 mt-1">Create a new bill for a flat</p>
             </div>
-            <a href="{{ route('owner.bills.index') }}"
-                class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                Back to Bills
-            </a>
+            <x-link-button href="{{ route('owner.bills.index') }}" variant="secondary">Back to Bills</x-link-button>
         </div>
 
         @if (session('error'))
@@ -57,7 +54,7 @@
                         Select Flat <span class="text-red-500">*</span>
                     </label>
                     <select name="flat_id" id="flat_id" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                         {{ $flats->isEmpty() ? 'disabled' : '' }}>
                         <option value="">Choose a flat...</option>
                         @foreach ($flats as $flat)
@@ -80,7 +77,7 @@
                         Bill Category <span class="text-red-500">*</span>
                     </label>
                     <select name="bill_category_id" id="bill_category_id" required
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                         <option value="">Choose a category...</option>
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}"
@@ -100,7 +97,7 @@
                         Bill Month <span class="text-red-500">*</span>
                     </label>
                     <input type="month" name="month" id="month" required value="{{ old('month', date('Y-m')) }}"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                     <p class="mt-1 text-sm text-gray-500">Select the month for which this bill is being created</p>
                     @error('month')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -115,7 +112,7 @@
                     <div class="relative">
                         <input type="number" name="amount" id="amount" step="0.01" min="0.01" required
                             value="{{ old('amount') }}"
-                            class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                     </div>
                     @error('amount')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -128,7 +125,7 @@
                         Notes (Optional)
                     </label>
                     <textarea name="notes" id="notes" rows="3"
-                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
                         placeholder="Any additional notes about this bill...">{{ old('notes') }}</textarea>
                     @error('notes')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -136,15 +133,9 @@
                 </div>
 
                 <!-- Submit Buttons -->
-                <div class="flex items-center justify-end space-x-3 pt-4 border-t">
-                    <a href="{{ route('owner.bills.index') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition">
-                        Cancel
-                    </a>
-                    <button type="submit" {{ $flats->isEmpty() ? 'disabled' : '' }}
-                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        Create Bill
-                    </button>
+                <div class="flex items-center justify-end gap-3 pt-4 border-t">
+                    <x-link-button href="{{ route('owner.bills.index') }}" variant="secondary">Cancel</x-link-button>
+                    <x-primary-button :disabled="$flats->isEmpty()">Create Bill</x-primary-button>
                 </div>
             </form>
         </div>

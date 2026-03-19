@@ -12,9 +12,8 @@
     @endif
 
     <div class="flex items-center gap-3">
-        <a href="{{ route('owner.buildings.tenants.index', $building) }}" class="px-3 py-2 border rounded">Back to Tenants</a>
-        <a href="{{ route('owner.buildings.tenants.occupancies.create', [$building->id, $tenant->id]) }}"
-            class="bg-blue-600 text-white px-4 py-2 rounded">+ Add Assignment</a>
+        <x-link-button href="{{ route('owner.buildings.tenants.index', $building) }}" variant="secondary">Back to Tenants</x-link-button>
+        <x-link-button href="{{ route('owner.buildings.tenants.occupancies.create', [$building->id, $tenant->id]) }}" variant="primary">+ Add Assignment</x-link-button>
     </div>
 
     <div class="mt-4 bg-white rounded-lg shadow-sm border overflow-hidden">
@@ -34,15 +33,15 @@
                         <td class="p-3">{{ $o->start_date }}</td>
                         <td class="p-3">{{ $o->end_date ?? 'present' }}</td>
                         <td class="p-3">
-                            <a href="{{ route('owner.buildings.tenants.occupancies.edit', [$building->id, $tenant->id, $o->id]) }}"
-                                class="text-blue-700 mr-3">Edit</a>
-
-                            <form method="POST"
-                                action="{{ route('owner.buildings.tenants.occupancies.destroy', [$building->id, $tenant->id, $o->id]) }}"
-                                class="inline" onsubmit="return confirm('Delete this record?');">
-                                @csrf @method('DELETE')
-                                <button class="text-red-600">Delete</button>
-                            </form>
+                            <div class="flex items-center gap-2">
+                                <x-link-button href="{{ route('owner.buildings.tenants.occupancies.edit', [$building->id, $tenant->id, $o->id]) }}" variant="secondary" size="sm">Edit</x-link-button>
+                                <form method="POST"
+                                    action="{{ route('owner.buildings.tenants.occupancies.destroy', [$building->id, $tenant->id, $o->id]) }}"
+                                    class="inline" onsubmit="return confirm('Delete this record?');">
+                                    @csrf @method('DELETE')
+                                    <x-danger-button>Delete</x-danger-button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 @empty

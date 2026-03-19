@@ -30,8 +30,7 @@
     @endif
 
     <div class="flex items-center gap-3 mb-6">
-        <a href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $tenant->id]) }}"
-            class="px-3 py-2 border rounded hover:bg-gray-50">Back to Assignments</a>
+        <x-link-button href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $tenant->id]) }}" variant="secondary">Back to Assignments</x-link-button>
     </div>
 
     <div class="bg-white rounded-lg shadow-sm border p-6">
@@ -46,7 +45,7 @@
                         Flat <span class="text-red-500">*</span>
                     </label>
                     <select name="flat_id" id="flat_id"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('flat_id') border-red-500 @enderror">
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('flat_id') border-red-500 @enderror">
                         <option value="">Select Flat</option>
                         @foreach ($flats as $flat)
                             <option value="{{ $flat->id }}"
@@ -66,7 +65,7 @@
                     </label>
                     <input type="date" name="start_date" id="start_date"
                         value="{{ old('start_date', $row->start_date) }}"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('start_date') border-red-500 @enderror">
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('start_date') border-red-500 @enderror">
                     @error('start_date')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -77,7 +76,7 @@
                         End Date <span class="text-gray-500">(Optional)</span>
                     </label>
                     <input type="date" name="end_date" id="end_date" value="{{ old('end_date', $row->end_date) }}"
-                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('end_date') border-red-500 @enderror">
+                        class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('end_date') border-red-500 @enderror">
                     @error('end_date')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -86,14 +85,8 @@
             </div>
 
             <div class="flex items-center gap-3 mt-6">
-                <button type="submit"
-                    class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                    Update Assignment
-                </button>
-                <a href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $tenant->id]) }}"
-                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                    Cancel
-                </a>
+                <x-primary-button>Update Assignment</x-primary-button>
+                <x-link-button href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $tenant->id]) }}" variant="secondary">Cancel</x-link-button>
             </div>
         </form>
     </div>

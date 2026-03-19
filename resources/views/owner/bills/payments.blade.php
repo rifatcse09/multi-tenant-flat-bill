@@ -9,20 +9,14 @@
                 <h1 class="text-2xl font-semibold text-gray-900">Bill Payments</h1>
                 <p class="text-gray-600 mt-1">{{ $bill->flat->building->name }} - Flat {{ $bill->flat->flat_number }}</p>
             </div>
-            <div class="flex items-center space-x-3">
-                <a href="{{ route('owner.payments.create', ['bill_id' => $bill->id]) }}"
-                    class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
-                    Record Payment
-                </a>
-                <a href="{{ route('owner.bills.index') }}"
-                    class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition">
-                    Back to Bills
-                </a>
+            <div class="flex items-center gap-3">
+                <x-link-button href="{{ route('owner.payments.create', ['bill_id' => $bill->id]) }}" variant="primary">Record Payment</x-link-button>
+                <x-link-button href="{{ route('owner.bills.index') }}" variant="secondary">Back to Bills</x-link-button>
             </div>
         </div>
 
         @if (session('ok'))
-            <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+            <div class="mb-4 bg-brand-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
                 {{ session('ok') }}
             </div>
         @endif
@@ -79,8 +73,8 @@
 
         <!-- Payment Summary -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div class="bg-blue-50 p-6 rounded-lg">
-                <div class="text-2xl font-bold text-blue-600">${{ number_format($totalDue, 2) }}</div>
+            <div class="bg-brand-50 p-6 rounded-lg">
+                <div class="text-2xl font-bold text-brand-600">${{ number_format($totalDue, 2) }}</div>
                 <div class="text-sm text-gray-600">Total Due</div>
                 <div class="text-xs text-gray-500 mt-1">
                     Bill: ${{ number_format($bill->amount, 2) }}
@@ -89,13 +83,13 @@
                     @endif
                 </div>
             </div>
-            <div class="bg-green-50 p-6 rounded-lg">
-                <div class="text-2xl font-bold text-green-600">${{ number_format($totalPaid, 2) }}</div>
+            <div class="bg-brand-50 p-6 rounded-lg">
+                <div class="text-2xl font-bold text-brand-600">${{ number_format($totalPaid, 2) }}</div>
                 <div class="text-sm text-gray-600">Total Paid</div>
                 <div class="text-xs text-gray-500 mt-1">{{ $payments->count() }} payment(s)</div>
             </div>
-            <div class="bg-orange-50 p-6 rounded-lg">
-                <div class="text-2xl font-bold text-orange-600">${{ number_format($remaining, 2) }}</div>
+            <div class="bg-amber-50 p-6 rounded-lg">
+                <div class="text-2xl font-bold text-brand-600">${{ number_format($remaining, 2) }}</div>
                 <div class="text-sm text-gray-600">Remaining</div>
                 <div class="text-xs text-gray-500 mt-1">
                     {{ $remaining > 0 ? 'Outstanding balance' : 'Fully paid' }}
@@ -114,10 +108,9 @@
                     <div class="text-gray-500">
                         <p class="text-lg font-medium">No payments recorded</p>
                         <p class="mt-1">Get started by recording the first payment</p>
-                        <a href="{{ route('owner.payments.create', ['bill_id' => $bill->id]) }}"
-                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-green-600 bg-green-100 hover:bg-green-200">
+                        <x-link-button href="{{ route('owner.payments.create', ['bill_id' => $bill->id]) }}" variant="secondary" class="mt-3">
                             Record first payment
-                        </a>
+                        </x-link-button>
                     </div>
                 </div>
             @else
@@ -153,13 +146,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
                                         <form method="POST" action="{{ route('owner.payments.destroy', $payment) }}"
-                                            class="inline">
+                                            class="inline" onsubmit="return confirm('Delete this payment?');">
                                             @csrf @method('DELETE')
-                                            <button type="submit"
-                                                class="text-red-600 hover:text-red-900 text-sm font-medium"
-                                                onclick="return confirm('Delete this payment?')">
-                                                Delete
-                                            </button>
+                                            <x-danger-button>Delete</x-danger-button>
                                         </form>
                                     </td>
                                 </tr>

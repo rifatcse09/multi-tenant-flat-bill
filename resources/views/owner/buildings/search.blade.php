@@ -4,14 +4,14 @@
 @section('content')
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-semibold">Search Results for "{{ $q }}"</h1>
-        <a href="{{ route('owner.buildings.index') }}" class="px-4 py-2 bg-gray-100 rounded">Back to All Buildings</a>
+        <x-link-button href="{{ route('owner.buildings.index') }}" variant="secondary">Back to All Buildings</x-link-button>
     </div>
 
     <form method="GET" action="{{ route('owner.buildings.search') }}" class="mt-4">
         <div class="flex gap-2">
             <input name="q" value="{{ $q }}" placeholder="Search name/address"
                 class="border p-2 rounded w-full">
-            <button type="submit" class="px-4 py-2 border rounded">Search</button>
+            <x-primary-button>Search</x-primary-button>
         </div>
     </form>
 
@@ -34,14 +34,8 @@
                         <td class="p-3">{{ $b->flats_count ?? 0 }}</td>
                         <td class="p-3">{{ $b->tenants_count ?? 0 }}</td>
                         <td class="p-3 flex gap-2">
-                            <a href="{{ route('owner.buildings.tenants.index', $b) }}"
-                                class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
-                                View Tenants
-                            </a>
-                            <a href="{{ route('owner.buildings.flats.index', $b) }}"
-                                class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded hover:bg-indigo-200 transition">
-                                View Flats
-                            </a>
+                            <x-link-button href="{{ route('owner.buildings.tenants.index', $b) }}" variant="secondary" size="sm">View Tenants</x-link-button>
+                            <x-link-button href="{{ route('owner.buildings.flats.index', $b) }}" variant="secondary" size="sm">View Flats</x-link-button>
                         </td>
                     </tr>
                 @empty

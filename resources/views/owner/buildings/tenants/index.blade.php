@@ -43,14 +43,10 @@
             {{ $t->pivot->start_date ?? '—' }} → {{ $t->pivot->end_date ?? 'present' }}
           </td>
           <td class="p-3">
-            <a href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $t->id]) }}" class="text-indigo-700">
-                View Assignments</a>
+            <x-link-button href="{{ route('owner.buildings.tenants.occupancies.index', [$building->id, $t->id]) }}" variant="secondary" size="sm">View Assignments</x-link-button>
           </td>
           <td class="p-3">
-
-            {{-- Optional shortcuts --}}
-            <a href="{{ route('owner.bills.index', ['tenant_id' => $t->id, 'building_id' => $building->id]) }}"
-               class="text-blue-700 mr-3">View Bills</a>
+            <x-link-button href="{{ route('owner.bills.index', ['tenant_id' => $t->id, 'building_id' => $building->id]) }}" variant="secondary" size="sm">View Bills</x-link-button>
           </td>
         </tr>
       @empty

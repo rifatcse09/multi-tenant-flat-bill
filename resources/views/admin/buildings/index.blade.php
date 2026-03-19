@@ -8,7 +8,7 @@
             <p class="text-gray-600 mt-1">Manage all buildings in the system</p>
         </div>
         <a href="{{ route('admin.buildings.create') }}"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            class="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition">
             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
@@ -22,19 +22,16 @@
             <div class="flex-1">
                 <label class="block text-sm font-medium text-gray-700 mb-1">Search Buildings</label>
                 <input name="q" value="{{ $search ?? '' }}" placeholder="Search by name or address..."
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
             </div>
             <div>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                <button type="submit" class="bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition">
                     Search
                 </button>
             </div>
             @if ($search ?? '')
                 <div>
-                    <a href="{{ route('admin.buildings.index') }}"
-                        class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
-                        Clear
-                    </a>
+                    <x-link-button href="{{ route('admin.buildings.index') }}" variant="secondary">Clear</x-link-button>
                 </div>
             @endif
         </form>
@@ -110,7 +107,7 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <span
-                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-100 text-brand-800">
                                         {{ $building->flats_count ?? 0 }} flats
                                     </span>
                                 </div>
@@ -118,11 +115,11 @@
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <span
-                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-100 text-brand-800">
                                         {{ $building->tenants_count ?? 0 }} tenants
                                     </span>
                                     <a href="{{ route('admin.buildings.tenants.create', $building) }}"
-                                        class="inline-flex items-center px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition"
+                                        class="inline-flex items-center px-2 py-1 bg-brand-600 text-white text-xs rounded hover:bg-brand-700 transition"
                                         title="Add Tenant">
                                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -135,20 +132,14 @@
                                 {{ $building->created_at->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex items-center space-x-3">
-                                    <a href="{{ route('admin.buildings.show', $building) }}"
-                                        class="text-blue-600 hover:text-blue-900 text-sm font-medium">View</a>
-                                    <a href="{{ route('admin.buildings.tenants.index', $building) }}"
-                                        class="text-green-600 hover:text-green-900 text-sm font-medium">Tenants</a>
-                                    <a href="{{ route('admin.buildings.edit', $building) }}"
-                                        class="text-orange-600 hover:text-orange-900 text-sm font-medium">Edit</a>
-                                    <form method="POST" action="{{ route('admin.buildings.destroy', $building) }}"
-                                        class="inline">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <x-link-button href="{{ route('admin.buildings.show', $building) }}" variant="secondary" size="sm">View</x-link-button>
+                                    <x-link-button href="{{ route('admin.buildings.tenants.index', $building) }}" variant="secondary" size="sm">Tenants</x-link-button>
+                                    <x-link-button href="{{ route('admin.buildings.edit', $building) }}" variant="secondary" size="sm">Edit</x-link-button>
+                                    <form method="POST" action="{{ route('admin.buildings.destroy', $building) }}" class="inline"
+                                        onsubmit="return confirm('Delete {{ $building->name }}? This will remove all flats and tenant assignments.')">
                                         @csrf @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 text-sm font-medium"
-                                            onclick="return confirm('Delete {{ $building->name }}? This will remove all flats and tenant assignments.')">
-                                            Delete
-                                        </button>
+                                        <x-danger-button>Delete</x-danger-button>
                                     </form>
                                 </div>
                             </td>
@@ -167,14 +158,14 @@
                                         </p>
                                         <p class="mt-1">Try adjusting your search terms</p>
                                         <a href="{{ route('admin.buildings.index') }}"
-                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-brand-600 bg-brand-100 hover:bg-brand-200">
                                             Show all buildings
                                         </a>
                                     @else
                                         <p class="text-lg font-medium">No buildings found</p>
                                         <p class="mt-1">Get started by creating the first building</p>
                                         <a href="{{ route('admin.buildings.create') }}"
-                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-600 bg-blue-100 hover:bg-blue-200">
+                                            class="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-brand-600 bg-brand-100 hover:bg-brand-200">
                                             Create first building
                                         </a>
                                     @endif

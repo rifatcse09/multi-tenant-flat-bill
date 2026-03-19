@@ -5,19 +5,19 @@
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold">{{ $owner->name }}</h1>
         <div class="flex gap-2">
-            <a href="{{ route('admin.owners.edit', $owner) }}" class="bg-blue-600 text-white px-4 py-2 rounded">Edit Owner</a>
-            <a href="{{ route('admin.owners.index') }}" class="px-4 py-2 border rounded">Back to List</a>
+            <a href="{{ route('admin.owners.edit', $owner) }}" class="bg-brand-600 text-white px-4 py-2 rounded">Edit Owner</a>
+            <x-link-button href="{{ route('admin.owners.index') }}" variant="secondary">Back to List</x-link-button>
         </div>
     </div>
 
     @if (isset($stats))
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div class="bg-blue-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-blue-600">{{ $stats['total_buildings'] }}</div>
+            <div class="bg-brand-50 p-4 rounded-lg">
+                <div class="text-2xl font-bold text-brand-600">{{ $stats['total_buildings'] }}</div>
                 <div class="text-sm text-gray-600">Total Buildings</div>
             </div>
             <div class="bg-green-50 p-4 rounded-lg">
-                <div class="text-2xl font-bold text-green-600">{{ $stats['total_flats'] }}</div>
+                <div class="text-2xl font-bold text-brand-600">{{ $stats['total_flats'] }}</div>
                 <div class="text-sm text-gray-600">Total Flats</div>
             </div>
             <div class="bg-yellow-50 p-4 rounded-lg">
@@ -52,7 +52,7 @@
                     <span class="text-sm text-gray-600">Role:</span>
                     <div class="font-medium">
                         <span
-                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-brand-100 text-brand-800">
                             {{ ucfirst($owner->role) }}
                         </span>
                     </div>
@@ -73,7 +73,7 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold">Buildings ({{ $buildings->count() }})</h2>
                 <a href="{{ route('admin.buildings.create') }}?owner_id={{ $owner->id }}"
-                    class="text-blue-600 hover:underline text-sm">+ Add Building</a>
+                    class="text-brand-600 hover:underline text-sm">+ Add Building</a>
             </div>
             @if ($buildings->count() > 0)
                 <div class="space-y-2 max-h-96 overflow-y-auto">
@@ -84,7 +84,7 @@
                                 <div class="flex items-center justify-between">
                                     <span class="font-medium text-gray-900">{{ $building->name }}</span>
                                     <a href="{{ route('admin.buildings.show', $building) }}"
-                                        class="text-blue-600 hover:underline text-sm">View</a>
+                                        class="text-brand-600 hover:underline text-sm">View</a>
                                 </div>
                                 <div class="text-sm text-gray-600 mt-1">{{ $building->address }}</div>
                                 <div class="flex items-center mt-2 text-xs text-gray-500 space-x-4">
@@ -104,7 +104,7 @@
                     </svg>
                     <p class="text-gray-500 mb-4">No buildings assigned yet.</p>
                     <a href="{{ route('admin.buildings.create') }}?owner_id={{ $owner->id }}"
-                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700">
+                        class="inline-flex items-center px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

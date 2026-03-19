@@ -6,7 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\HandleErrors;
 use App\Exceptions\Handler;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
@@ -22,5 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        $exceptions->handler(Handler::class);
+        //
     })->create();
+
+$app->singleton(\Illuminate\Contracts\Debug\ExceptionHandler::class, Handler::class);
+
+return $app;

@@ -39,7 +39,7 @@
         <label class="block mb-3">
             <span class="text-sm text-gray-700">Flat number <span class="text-red-500">*</span></span>
             <input name="flat_number" value="{{ old('flat_number', $flat->flat_number) }}"
-                class="mt-1 w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('flat_number') border-red-500 @enderror"
+                class="mt-1 w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('flat_number') border-red-500 @enderror"
                 required>
             @error('flat_number')
                 <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
@@ -50,7 +50,7 @@
             <label class="block">
                 <span class="text-sm text-gray-700">Flat owner</span>
                 <input name="flat_owner_name" value="{{ old('flat_owner_name', $flat->flat_owner_name) }}"
-                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('flat_owner_name') border-red-500 @enderror">
+                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('flat_owner_name') border-red-500 @enderror">
                 @error('flat_owner_name')
                     <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                 @enderror
@@ -59,7 +59,7 @@
             <label class="block">
                 <span class="text-sm text-gray-700">Phone</span>
                 <input name="flat_owner_phone" value="{{ old('flat_owner_phone', $flat->flat_owner_phone) }}"
-                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 @error('flat_owner_phone') border-red-500 @enderror">
+                    class="mt-1 w-full border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 @error('flat_owner_phone') border-red-500 @enderror">
                 @error('flat_owner_phone')
                     <div class="text-red-600 text-sm mt-1">{{ $message }}</div>
                 @enderror
@@ -67,14 +67,8 @@
         </div>
 
         <div class="mt-5 flex gap-2">
-            <button type="submit"
-                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                Save Changes
-            </button>
-            <a href="{{ route('owner.buildings.flats.index', $flat->building) }}"
-                class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                Back
-            </a>
+            <x-primary-button>Save Changes</x-primary-button>
+            <x-link-button href="{{ route('owner.buildings.flats.index', $flat->building) }}" variant="secondary">Back</x-link-button>
         </div>
     </form>
 

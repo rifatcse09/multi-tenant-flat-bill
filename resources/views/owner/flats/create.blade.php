@@ -27,8 +27,10 @@
   </div>
 
   <div class="mt-5 flex gap-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
-    <a href="{{ route('owner.buildings.flats.index',$building) }}" class="px-4 py-2 border rounded">Cancel</a>
+    <div class="flex gap-2">
+        <x-primary-button>Create</x-primary-button>
+        <x-link-button href="{{ route('owner.buildings.flats.index',$building) }}" variant="secondary">Cancel</x-link-button>
+    </div>
   </div>
 </form>
 @endsection

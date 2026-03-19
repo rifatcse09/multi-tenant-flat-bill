@@ -34,7 +34,7 @@
   </div>
 
   <div class="mt-5 flex gap-2">
-    <button class="bg-blue-600 text-white px-4 py-2 rounded">Assign</button>
+    <button class="bg-brand-600 text-white px-4 py-2 rounded">Assign</button>
     <a href="{{ route('admin.buildings.tenants.index',$building) }}" class="px-4 py-2 border rounded">Cancel</a>
   </div>
 </form>

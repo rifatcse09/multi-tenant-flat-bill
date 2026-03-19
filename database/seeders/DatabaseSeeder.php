@@ -20,6 +20,9 @@ class DatabaseSeeder extends Seeder
             BuildingSeeder::class,
             FlatSeeder::class,
             CategorySeeder::class,
+            OccupancySeeder::class,
+            BillSeeder::class,
+            PaymentSeeder::class,
         ]);
     }
 }

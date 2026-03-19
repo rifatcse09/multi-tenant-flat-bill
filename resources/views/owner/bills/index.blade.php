@@ -7,7 +7,7 @@
     <form method="GET" class="bg-white rounded-lg shadow-sm border p-4 grid md:grid-cols-6 gap-3">
         <div>
             <label class="text-sm text-gray-600">Flat</label>
-            <select name="flat_id" class="w-full border p-2 rounded">
+            <select name="flat_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                 <option value="">All</option>
                 @foreach ($flats as $f)
                     <option value="{{ $f->id }}" @selected($filters['flat_id'] == $f->id)>Flat {{ $f->flat_number }}</option>
@@ -16,7 +16,7 @@
         </div>
         <div>
             <label class="text-sm text-gray-600">Category</label>
-            <select name="category_id" class="w-full border p-2 rounded">
+            <select name="category_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                 <option value="">All</option>
                 @foreach ($categories as $c)
                     <option value="{{ $c->id }}" @selected($filters['category_id'] == $c->id)>{{ $c->name }}</option>
@@ -25,7 +25,7 @@
         </div>
         <div>
             <label class="text-sm text-gray-600">Status</label>
-            <select name="status" class="w-full border p-2 rounded">
+            <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
                 <option value="">All</option>
                 @foreach (['unpaid', 'partial', 'paid'] as $s)
                     <option value="{{ $s }}" @selected($filters['status'] === $s)>{{ ucfirst($s) }}</option>
@@ -34,21 +34,20 @@
         </div>
         <div>
             <label class="text-sm text-gray-600">Month From</label>
-            <input type="month" name="month_from" value="{{ $filters['month_from'] }}" class="w-full border p-2 rounded">
+            <input type="month" name="month_from" value="{{ $filters['month_from'] }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
         </div>
         <div>
             <label class="text-sm text-gray-600">Month To</label>
-            <input type="month" name="month_to" value="{{ $filters['month_to'] }}" class="w-full border p-2 rounded">
+            <input type="month" name="month_to" value="{{ $filters['month_to'] }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
         </div>
         <div class="md:col-span-3">
             <label class="text-sm text-gray-600">Tenant (name/email)</label>
-            <input name="q" value="{{ $filters['q'] }}" class="w-full border p-2 rounded" placeholder="Search tenant">
+            <input name="q" value="{{ $filters['q'] }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="Search tenant">
         </div>
         <div class="md:col-span-3 flex items-end gap-2">
-            <button class="bg-blue-600 text-white px-4 py-2 rounded">Filter</button>
-            <a href="{{ route('owner.bills.index') }}" class="px-4 py-2 border rounded">Reset</a>
-            <a href="{{ route('owner.bills.create') }}" class="ml-auto bg-green-600 text-white px-4 py-2 rounded">+ Create
-                Bill</a>
+            <x-primary-button>Filter</x-primary-button>
+            <x-link-button href="{{ route('owner.bills.index') }}" variant="secondary">Reset</x-link-button>
+            <x-link-button href="{{ route('owner.bills.create') }}" variant="primary" class="ml-auto">+ Create Bill</x-link-button>
         </div>
     </form>
 
@@ -117,14 +116,8 @@
                         </td>
                         <td class="p-3">
 
-                            <a href="{{ route('owner.payments.create', ['bill_id' => $b->id]) }}"
-                                class="text-indigo-700 mr-3">
-                                Pay Now
-                            </a>
-                            <a href="{{ route('owner.adjustments.create', ['bill_id' => $b->id]) }}"
-                                class="text-amber-700 mr-3">
-                                Add Due / Adjustment
-                            </a>
+                            <x-link-button href="{{ route('owner.payments.create', ['bill_id' => $b->id]) }}" variant="primary" size="sm">Pay Now</x-link-button>
+                            <x-link-button href="{{ route('owner.adjustments.create', ['bill_id' => $b->id]) }}" variant="secondary" size="sm">Adjustment</x-link-button>
                         </td>
                     </tr>
                 @empty
