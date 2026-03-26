@@ -50,6 +50,8 @@ class OwnerController extends Controller
     public function edit(User $owner)
     {
         abort_unless($owner->role === 'owner', 404);
+        $owner->load('ownerSubscription.plan');
+
         return view('admin.owners.edit', compact('owner'));
     }
 

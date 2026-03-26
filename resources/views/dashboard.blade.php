@@ -48,4 +48,89 @@
     </div>
   </div>
 </div>
+
+@if(isset($adminAnalytics))
+  <div
+    id="adminDashboardAnalytics"
+    class="mt-10 space-y-8"
+    data-payment-labels='@json($adminAnalytics['paymentTrend']['labels'])'
+    data-payment-values='@json($adminAnalytics['paymentTrend']['amounts'])'
+    data-plan-labels='@json($adminAnalytics['subscriptionByPlan']['labels'])'
+    data-plan-values='@json($adminAnalytics['subscriptionByPlan']['counts'])'
+    data-status-labels='@json($adminAnalytics['subscriptionByStatus']['labels'])'
+    data-status-values='@json($adminAnalytics['subscriptionByStatus']['counts'])'
+    data-pl-labels='@json($adminAnalytics['profitLoss']['labels'])'
+    data-pl-values='@json($adminAnalytics['profitLoss']['values'])'
+  >
+    <div class="border-b border-slate-200 pb-2">
+      <h2 class="text-lg font-semibold text-slate-900">Analytics</h2>
+      <p class="text-sm text-slate-600">Tenant payments, subscription mix, and receivables (admin view).</p>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Payments (12 months)</div>
+        <div class="mt-1 text-2xl font-bold text-slate-900">${{ number_format($adminAnalytics['kpi']['paymentsLast12Months'], 2) }}</div>
+        <div class="mt-1 text-xs text-slate-500">Sum of all recorded tenant payments</div>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Outstanding bills</div>
+        <div class="mt-1 text-2xl font-bold text-red-700">${{ number_format($adminAnalytics['kpi']['outstandingBills'], 2) }}</div>
+        <div class="mt-1 text-xs text-slate-500">Unpaid / partial — still owed</div>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Net position</div>
+        <div class="mt-1 text-2xl font-bold {{ $adminAnalytics['kpi']['netPosition'] >= 0 ? 'text-emerald-700' : 'text-red-700' }}">
+          ${{ number_format($adminAnalytics['kpi']['netPosition'], 2) }}
+        </div>
+        <div class="mt-1 text-xs text-slate-500">12-mo collected minus outstanding</div>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Est. subscription MRR</div>
+        <div class="mt-1 text-2xl font-bold text-brand-700">${{ number_format($adminAnalytics['kpi']['estimatedSubscriptionMrr'], 2) }}</div>
+        <div class="mt-1 text-xs text-slate-500">{{ $adminAnalytics['kpi']['trialingSubscriptions'] }} trialing · {{ $adminAnalytics['kpi']['activePaidSubscriptions'] }} active paid</div>
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-slate-800">Tenant payments over time</h3>
+        <p class="mt-0.5 text-xs text-slate-500">Monthly totals (all owners)</p>
+        <div class="mt-4 h-72">
+          <canvas id="chartAdminPayments"></canvas>
+        </div>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-slate-800">Subscriptions by plan</h3>
+        <p class="mt-0.5 text-xs text-slate-500">Owner accounts per plan</p>
+        <div class="mt-4 h-72">
+          <canvas id="chartAdminPlans"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-slate-800">Subscriptions by status</h3>
+        <p class="mt-0.5 text-xs text-slate-500">Trial, active, expired, etc.</p>
+        <div class="mt-4 h-64">
+          <canvas id="chartAdminStatus"></canvas>
+        </div>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h3 class="text-sm font-semibold text-slate-800">Collections vs receivables</h3>
+        <p class="mt-0.5 text-xs text-slate-500">Collected (12 mo), outstanding balance, and net (simplified)</p>
+        <div class="mt-4 h-64">
+          <canvas id="chartAdminProfitLoss"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+@endif
 @endsection
+
+@if(isset($adminAnalytics))
+  @push('scripts')
+    @vite(['resources/js/admin-dashboard.js'])
+  @endpush
+@endif

@@ -20,6 +20,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         $middleware->api(append: [
             HandleErrors::class,
         ]);
+
+        $middleware->alias([
+            'owner.subscription' => \App\Http\Middleware\EnsureOwnerSubscriptionActive::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

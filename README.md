@@ -37,6 +37,15 @@ Supports **Super Admin → House Owners → Tenants** roles, flat assignments, b
 - **Tenant**
   - (Future scope) login and view bills/payments
 
+### Owner subscriptions (SaaS)
+
+- **Three public plans (cards on `/owner/subscription`):**
+  - **Starter — free:** **15 days** full access (configurable via `SUBSCRIPTION_TRIAL_DAYS` in `.env`).
+  - **Quarterly:** Paid every **3 months** (featured / “Popular” in the UI).
+  - **Yearly:** Paid once per **1 year** (best long-term rate).
+- **New owners** start on the free tier with a trial end date of `now + trial days`, then need a **paid** period (or admin activation).
+- **Admin:** **Admin → Owners → Edit** — extend trial (days) or grant paid access (months) until a payment gateway is integrated.
+
 ---
 
 ## Setup Instructions

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -80,5 +81,28 @@ class User extends Authenticatable
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class, 'owner_id');
+    }
+
+    public function ownerSubscription(): HasOne
+    {
+        return $this->hasOne(OwnerSubscription::class);
+    }
+
+    /**
+     * Owners must have an active trial or paid period to use the app.
+     */
+    public function hasActiveSubscriptionAccess(): bool
+    {
+        if (! $this->isOwner()) {
+            return true;
+        }
+
+        $sub = $this->ownerSubscription;
+
+        if (! $sub) {
+            return false;
+        }
+
+        return $sub->grantsAccess();
     }
 }

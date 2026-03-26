@@ -3,6 +3,7 @@
 namespace App\Services\Admin;
 
 use App\Models\User;
+use App\Services\SubscriptionService;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class OwnerService
 {
+    public function __construct(private SubscriptionService $subscriptionService) {}
     /**
      * Get paginated owners with search functionality.
      */
@@ -29,17 +31,21 @@ class OwnerService
     }
 
     /**
-     * Create a new owner.
+     * Create a new owner with a 3-month free trial subscription.
      */
     public function createOwner(array $data): User
     {
-        return User::create([
+        $owner = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'slug' => $data['slug'] ?? null,
             'role' => 'owner',
             'password' => Hash::make($data['password'] ?? 'password'),
         ]);
+
+        $this->subscriptionService->createTrialForOwner($owner);
+
+        return $owner;
     }
 
     /**

@@ -43,6 +43,7 @@
                 @can('owner')
                     <div class="mt-4 pt-3 border-t border-slate-100">
                         <div class="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Owner</div>
+                        <a href="{{ route('owner.subscription.show') }}" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">Subscription</a>
                         <a href="/owner/buildings" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">Buildings</a>
                         <a href="/owner/categories" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">Bill Categories</a>
                         <a href="/owner/bills" class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">Bills</a>
@@ -79,6 +80,7 @@
                         @endcan
                         @can('owner')
                             <div class="mt-2 text-xs uppercase text-slate-400 px-3">Owner</div>
+                            <a href="{{ route('owner.subscription.show') }}" class="block px-3 py-2.5 rounded-lg hover:bg-slate-50">Subscription</a>
                             <a href="/owner/buildings" class="block px-3 py-2.5 rounded-lg hover:bg-slate-50">Buildings</a>
                             <a href="/owner/categories" class="block px-3 py-2.5 rounded-lg hover:bg-slate-50">Bill Categories</a>
                             <a href="/owner/bills" class="block px-3 py-2.5 rounded-lg hover:bg-slate-50">Bills</a>
@@ -95,6 +97,7 @@
             </main>
         </div>
     </div>
+    @stack('scripts')
 </body>
 
 </html>

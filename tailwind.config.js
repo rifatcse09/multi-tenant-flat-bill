@@ -32,4 +32,26 @@ export default {
     },
 
     plugins: [forms],
+
+    // Classes used only inside Alpine x-bind:class (JIT may miss them)
+    safelist: [
+        'ring-2',
+        'ring-brand-500',
+        'ring-brand-500/60',
+        'ring-offset-2',
+        'ring-offset-slate-50',
+        'ring-offset-slate-950',
+        'ring-offset-white',
+        'md:scale-[1.01]',
+        'lg:scale-[1.02]',
+        'opacity-95',
+        'shadow-brand-500/25',
+        'shadow-brand-500/40',
+        'shadow-brand-500/30',
+        'shadow-brand-500/5',
+        'ring-brand-400/70',
+        'from-brand-950/40',
+        'to-brand-950/40',
+        'ring-offset-[#0c1220]',
+    ],
 };

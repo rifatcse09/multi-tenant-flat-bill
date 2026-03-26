@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Alpine: hide x-show elements until Alpine runs (avoids flash + broken click UX) */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Subscription pricing: ensure dark panel is visible even if Blade caches old HTML */
+@layer components {
+    .subscription-pricing {
+        @apply min-h-[12rem];
+    }
+}

@@ -15,12 +15,14 @@ use App\Http\Controllers\Admin\BuildingController as AdminBuilding;
 use App\Http\Controllers\Owner\BuildingController as OwnerBuilding;
 use App\Http\Controllers\Admin\BuildingTenantController as AdminBuildingTenant;
 use App\Http\Controllers\Owner\BuildingTenantController as OwnerBuildingTenant;
+use App\Http\Controllers\Owner\SubscriptionController as OwnerSubscriptionController;
+use App\Http\Controllers\Admin\OwnerSubscriptionController as AdminOwnerSubscription;
 
 Route::get('/', function () {
      return redirect()->route('login');
 });
 
-Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', DashboardController::class)->middleware(['auth', 'verified', 'owner.subscription'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::resource('owners', ProfileController::class)
@@ -46,9 +48,20 @@ Route::middleware(['auth','can:admin'])
         // Buildings management (admin scope)
         Route::resource('buildings', AdminBuilding::class);
 
+        Route::post('owners/{owner}/subscription/activate-paid', [AdminOwnerSubscription::class, 'activatePaid'])
+            ->name('owners.subscription.activate-paid');
+        Route::post('owners/{owner}/subscription/extend-trial', [AdminOwnerSubscription::class, 'extendTrial'])
+            ->name('owners.subscription.extend-trial');
+
     });
 
-Route::middleware(['auth','can:owner'])
+Route::middleware(['auth', 'can:owner'])
+    ->prefix('owner')->name('owner.')
+    ->group(function () {
+        Route::get('subscription', [OwnerSubscriptionController::class, 'show'])->name('subscription.show');
+    });
+
+Route::middleware(['auth', 'can:owner', 'owner.subscription'])
     ->prefix('owner')->name('owner.')
     ->group(function () {
 

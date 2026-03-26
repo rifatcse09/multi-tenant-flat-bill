@@ -14,6 +14,12 @@
             </div>
         @endif
 
+        @if (session('ok'))
+            <div class="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded">
+                {{ session('ok') }}
+            </div>
+        @endif
+
         <div class="bg-white rounded-lg shadow-sm border">
             <div class="p-6">
                 <form method="POST" action="{{ route('admin.owners.update', $owner) }}">
@@ -74,6 +80,48 @@
                 </form>
             </div>
         </div>
+
+        @if ($owner->ownerSubscription)
+            @php
+                $sub = $owner->ownerSubscription;
+            @endphp
+            <div class="mt-6 bg-white rounded-lg shadow-sm border">
+                <div class="px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-lg font-semibold text-gray-900">Subscription</h2>
+                    <p class="text-sm text-gray-600 mt-1">New owners get {{ config('subscription.trial_days', 15) }} days free trial, then a paid plan.</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="text-sm text-gray-700">
+                        <span class="font-medium">Status:</span> {{ $sub->status }}
+                        @if ($sub->trial_ends_at)
+                            <span class="text-gray-600"> · Trial ends {{ $sub->trial_ends_at->format('M j, Y') }}</span>
+                        @endif
+                        @if ($sub->current_period_end && $sub->status === \App\Models\OwnerSubscription::STATUS_ACTIVE)
+                            <span class="text-gray-600"> · Paid until {{ $sub->current_period_end->format('M j, Y') }}</span>
+                        @endif
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <form method="POST" action="{{ route('admin.owners.subscription.extend-trial', $owner) }}"
+                            class="inline-flex items-end gap-2">
+                            @csrf
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Extend trial (days)</label>
+                                <input type="number" name="days" value="30" min="1" max="365" class="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm">
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-brand-600 text-white text-sm rounded-lg hover:bg-brand-700">Extend trial</button>
+                        </form>
+                        <form method="POST" action="{{ route('admin.owners.subscription.activate-paid', $owner) }}" class="inline-flex items-end gap-2">
+                            @csrf
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Grant paid (months)</label>
+                                <input type="number" name="months" value="1" min="1" max="60" class="w-24 border border-gray-300 rounded px-2 py-1.5 text-sm">
+                            </div>
+                            <button type="submit" class="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-900">Activate paid</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- Owner Information -->
         <div class="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-4">
